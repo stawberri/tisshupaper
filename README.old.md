@@ -1,2 +1,0 @@
-# tisshupaper
-random danbooru images
