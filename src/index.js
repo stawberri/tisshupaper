@@ -1,8 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
+import 'normalize.css'
 import './index.css'
-import App from './App'
-// import registerServiceWorker from './registerServiceWorker'
+import Components from './components'
 
-ReactDOM.render(<App />, document.getElementById('root'))
-// registerServiceWorker()
+ReactDOM.render(<Components />, document.getElementById('root'))
