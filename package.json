@@ -19,7 +19,7 @@
     "prettier": "^1.11.1"
   },
   "scripts": {
-    "precommit": "precise-commits",
+    "precommit": "precise-commits --whitelist **/*.{js,css,md}",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
