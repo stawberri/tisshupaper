@@ -67,12 +67,12 @@ class Splash extends React.Component {
   }
 
   updateImageSize = () => {
-    if(this.updateImageAnimationFrame) return
+    if (this.updateImageAnimationFrame) return
     this.updateImageAnimationFrame = requestAnimationFrame(() => {
       delete this.updateImageAnimationFrame
 
       const ref = this.mainImageRef
-      if(!ref) return
+      if (!ref) return
 
       this.setState({
         imageWidth: ref.clientWidth,
