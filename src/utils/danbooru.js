@@ -47,7 +47,7 @@ export function generatePostTitle(post) {
   }
 }
 
-export function postImageCoverage(post, width, height) {
+export function postImageCoverage(post, width, height, ignoreSize) {
   if (!post) return 0
 
   const { image_width: postWidth, image_height: postHeight } = post
@@ -59,9 +59,9 @@ export function postImageCoverage(post, width, height) {
   const shrinkHeight = Math.round(width / ratio)
 
   let postArea
-  if (postHeight <= height && postWidth <= width) {
+  if (!ignoreSize && postHeight <= height && postWidth <= width) {
     postArea = postWidth * postHeight
-  } else if (postHeight > height && shrinkWidth <= width) {
+  } else if (shrinkWidth <= width) {
     postArea = shrinkWidth * height
   } else {
     postArea = width * shrinkHeight

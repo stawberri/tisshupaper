@@ -61,15 +61,7 @@ const Meta = styled.p`
   white-space: nowrap;
 `
 
-const placeMap = []
-for (let i = 0; i < 200; i++) {
-  placeMap.push({
-    i: i,
-    pos: i + (2 * Math.random() - 1) * 25
-  })
-}
-placeMap.sort((a, b) => a.pos - b.pos)
-console.log(placeMap.map(p => p.i))
+const randAdjust = Array.from(new Array(200), () => Math.random())
 
 const transparent =
   'data:image/gif;base64,R0lGODlhAQABAIAAA' +
@@ -122,27 +114,32 @@ class Splash extends React.Component {
     const { data, posts } = this.props
     if (!posts.length) return
 
-    const splashPosts = posts
-      // .reduce((array, value, index) => {
-      //   array[placeMap[index].i] = value
-      //   return array
-      // }, [])
-      .map(id => [
-        postImageCoverage(data[id], imageWidth, imageHeight),
-        data[id]
-      ])
-      .sort((a, b) => b[0] - a[0])
-      .map(array => array[1])
+    let bestPost = null
+    let bestScore = -Infinity
 
-    return splashPosts[placeMap[0].i]
+    posts.forEach((id, index) => {
+      let score = 0
+      const post = data[id]
 
-    // for(let i = 199; i >= 0; i--) {
-    //   const post = splashPosts[i]
-    //   const coverage = postImageCoverage(post, imageWidth, imageHeight)
+      const indexScore = 1 - index / 200
+      score += indexScore * 3
 
-    //   const minCoverage = 0.49 * i
-    //   if (coverage >= minCoverage) return post
-    // }
+      const coverageScore = postImageCoverage(post, imageWidth, imageHeight)
+      score += coverageScore * 2
+
+      const aspectScore = postImageCoverage(post, imageWidth, imageHeight, true)
+      score += aspectScore * 2
+
+      const randomScore = randAdjust[index]
+      score += randomScore
+
+      if (score > bestScore) {
+        bestScore = score
+        bestPost = post
+      }
+    })
+
+    return bestPost
   }
 
   render() {
