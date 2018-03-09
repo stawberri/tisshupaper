@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import { connect } from 'react-redux'
 import { fetch } from 'store/actions/splash'
 
-import { generatePostTitle } from 'utils/danbooru'
+import { generatePostTitle, postImageCoverage } from 'utils/danbooru'
 
 const Wrapper = styled.div`
   position: relative;
@@ -65,7 +65,7 @@ const placeMap = []
 for (let i = 0; i < 200; i++) {
   placeMap.push({
     i: i,
-    pos: i + (2 * Math.random() - 1) * (50 + i)
+    pos: i + (2 * Math.random() - 1) * 25
   })
 }
 placeMap.sort((a, b) => a.pos - b.pos)
@@ -118,16 +118,31 @@ class Splash extends React.Component {
   }
 
   pickPost() {
+    const { imageWidth, imageHeight } = this.state
     const { data, posts } = this.props
     if (!posts.length) return
 
     const splashPosts = posts
-      .reduce((array, value, index) => {
-        array[placeMap[index].i] = value
-        return array
-      }, [])
-      .map(id => data[id])
-    return splashPosts[0]
+      // .reduce((array, value, index) => {
+      //   array[placeMap[index].i] = value
+      //   return array
+      // }, [])
+      .map(id => [
+        postImageCoverage(data[id], imageWidth, imageHeight),
+        data[id]
+      ])
+      .sort((a, b) => b[0] - a[0])
+      .map(array => array[1])
+
+    return splashPosts[placeMap[0].i]
+
+    // for(let i = 199; i >= 0; i--) {
+    //   const post = splashPosts[i]
+    //   const coverage = postImageCoverage(post, imageWidth, imageHeight)
+
+    //   const minCoverage = 0.49 * i
+    //   if (coverage >= minCoverage) return post
+    // }
   }
 
   render() {
