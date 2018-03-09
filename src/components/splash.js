@@ -61,8 +61,19 @@ const Meta = styled.p`
   white-space: nowrap;
 `
 
+const placeMap = []
+for (let i = 0; i < 200; i++) {
+  placeMap.push({
+    i: i,
+    pos: i + (2 * Math.random() - 1) * (50 + i)
+  })
+}
+placeMap.sort((a, b) => a.pos - b.pos)
+console.log(placeMap.map(p => p.i))
+
 const transparent =
-  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+  'data:image/gif;base64,R0lGODlhAQABAIAAA' +
+  'AAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
 
 class Splash extends React.Component {
   constructor(props) {
@@ -76,8 +87,6 @@ class Splash extends React.Component {
 
   componentDidMount() {
     const { dispatch } = this.props
-
-    this.fetchInterval = window.setInterval(() => dispatch(fetch()), 300000)
     dispatch(fetch())
 
     window.addEventListener('resize', this.updateImageSize)
@@ -86,7 +95,6 @@ class Splash extends React.Component {
   componentWillUnmount() {
     cancelAnimationFrame(this.updateImageAnimationFrame)
     window.removeEventListener('resize', this.updateImageSize)
-    window.clearTimeout(this.fetchInterval)
   }
 
   saveImageRef = ref => {
@@ -113,7 +121,12 @@ class Splash extends React.Component {
     const { data, posts } = this.props
     if (!posts.length) return
 
-    const splashPosts = posts.map(id => data[id])
+    const splashPosts = posts
+      .reduce((array, value, index) => {
+        array[placeMap[index].i] = value
+        return array
+      }, [])
+      .map(id => data[id])
     return splashPosts[0]
   }
 
