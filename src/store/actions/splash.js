@@ -1,23 +1,15 @@
-import { put as putPost } from './posts'
+import { merge } from './posts'
 
 const actions = {
-  add: 'splash.add',
-  remove: 'splash.remove'
+  set: 'splash.set'
 }
 
 export default actions
 
-export function add(id) {
+export function set(ids) {
   return {
-    type: actions.add,
-    payload: { id }
-  }
-}
-
-export function remove(id) {
-  return {
-    type: actions.remove,
-    payload: { id }
+    type: actions.set,
+    payload: { ids }
   }
 }
 
@@ -26,9 +18,7 @@ export function fetch() {
     const { config: { danbooru, splashTags: tags } } = getState()
 
     const posts = await danbooru.posts({ tags })
-    for (const post of posts) {
-      dispatch(putPost(post))
-      dispatch(add(post.id))
-    }
+    dispatch(merge(posts))
+    dispatch(set(posts.map(({ id }) => id)))
   }
 }

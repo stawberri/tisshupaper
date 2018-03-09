@@ -1,20 +1,12 @@
 const actions = {
-  put: 'posts.put',
-  remove: 'posts.remove'
+  merge: 'posts.merge'
 }
 
 export default actions
 
-export function put(post) {
+export function merge(posts) {
   return {
-    type: actions.put,
-    payload: { post }
-  }
-}
-
-export function remove(id) {
-  return {
-    type: actions.remove,
-    payload: { id }
+    type: actions.merge,
+    payload: { posts }
   }
 }
