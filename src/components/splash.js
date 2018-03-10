@@ -79,11 +79,18 @@ class Splash extends React.Component {
 
     this.state = {
       imageWidth: 0,
-      imageHeight: 0
+      imageHeight: 0,
+      loading: true,
+      pickedPost: null
     }
   }
 
   componentDidMount() {
+    this.preloadImg = document.createElement('img')
+    this.preloadImg.addEventListener('load', this.preloadLoaded)
+
+    this.randomizePost()
+
     const { dispatch } = this.props
     dispatch(fetch(1))
     dispatch(fetch(20))
@@ -92,9 +99,27 @@ class Splash extends React.Component {
     window.addEventListener('resize', this.updateImageSize)
   }
 
+  componentWillReceiveProps(props) {
+    this.randomizePost(props)
+
+    const { posts } = props
+    if (posts.length >= 200) {
+      this.pickPost()
+    }
+  }
+
   componentWillUnmount() {
     cancelAnimationFrame(this.updateImageAnimationFrame)
     window.removeEventListener('resize', this.updateImageSize)
+    this.preloadImg.removeEventListener('load', this.preloadLoaded)
+  }
+
+  randomizePost({ data, posts } = this.props, force) {
+    const post =
+      this.state.pickedPost ||
+      data[posts[Math.floor(Math.random() * posts.length)]]
+    const id = (post && post.id) || true
+    this.setState(({ loading }) => ({ loading: (force || loading) && id }))
   }
 
   saveImageRef = ref => {
@@ -114,26 +139,28 @@ class Splash extends React.Component {
         imageWidth: ref.clientWidth,
         imageHeight: ref.clientHeight
       })
+
+      this.pickPost()
     })
   }
 
-  imageLoaded = () => {
-    if (this.props.posts.length < 200) {
-      this.forceUpdate()
+  mainImageLoaded = () => {
+    this.randomizePost()
+  }
+
+  preloadLoaded = () => {
+    if (this.preloadId === this.state.pickedPost.id) {
+      this.setState({ loading: false })
     }
   }
 
   pickPost() {
     const { imageWidth, imageHeight } = this.state
-    const { data, posts } = this.props
+    const { data, posts, danbooru } = this.props
     if (!posts.length) return
 
-    if (posts.length < 200) {
-      return data[posts[Math.floor(Math.random() * posts.length)]]
-    }
-
-    let bestPost = null
-    let bestScore = -Infinity
+    let pickedPost = null
+    let pickedScore = -Infinity
 
     posts.forEach((id, index) => {
       let score = 0
@@ -151,27 +178,32 @@ class Splash extends React.Component {
       const randomScore = randAdjust(index)
       score += randomScore * 2
 
-      if (score > bestScore) {
-        bestScore = score
-        bestPost = post
+      if (score > pickedScore) {
+        pickedScore = score
+        pickedPost = post
       }
     })
 
-    return bestPost
+    if (!this.state.pickedPost || this.state.pickedPost.id !== pickedPost.id) {
+      this.randomizePost(undefined, true)
+      this.setState({ pickedPost })
+      this.preloadId = pickedPost.id
+      this.preloadImg.src = danbooru.url(pickedPost.file_url)
+    }
   }
 
   render() {
-    const { danbooru, posts } = this.props
-    const loading = posts.length < 200
-    const post = this.pickPost()
+    const { loading, pickedPost } = this.state
+    const { danbooru, data } = this.props
 
+    const post = loading ? data[loading] : pickedPost
     const src = post
       ? danbooru.url(loading ? post.preview_file_url : post.file_url)
       : transparent
 
     return (
       <Wrapper>
-        <BackgroundImage src={src} onLoad={this.imageLoaded} />
+        <BackgroundImage src={src} onLoad={this.mainImageLoaded} />
         <MainImage innerRef={this.saveImageRef} src={src} isLoading={loading} />
         <Meta>{post && generatePostTitle(post)}</Meta>
       </Wrapper>
