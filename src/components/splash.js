@@ -146,7 +146,7 @@ class Splash extends React.Component {
     const { danbooru } = this.props
     const post = this.pickPost()
 
-    const src = post ? danbooru.url(post.large_file_url) : transparent
+    const src = post ? danbooru.url(post.file_url) : transparent
 
     return (
       <Wrapper>
