@@ -13,11 +13,11 @@ export function set(ids) {
   }
 }
 
-export function fetch() {
+export function fetch(limit) {
   return async (dispatch, getState) => {
     const { config: { danbooru, splashTags: tags } } = getState()
+    const posts = await danbooru.posts({ tags, limit })
 
-    const posts = await danbooru.posts({ tags })
     dispatch(merge(posts))
     dispatch(set(posts.map(({ id }) => id)))
   }

@@ -3,7 +3,7 @@ import Danbooru from 'danbooru'
 
 const init = {
   danbooru: new Danbooru(),
-  splashTags: 'order:rank rating:safe limit:200'
+  splashTags: 'order:rank rating:safe'
 }
 
 export default function(state = init, { type, payload }) {

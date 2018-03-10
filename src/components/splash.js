@@ -5,6 +5,10 @@ import { fetch } from 'store/actions/splash'
 
 import { generatePostTitle, postImageCoverage } from 'utils/danbooru'
 
+const blurStrength = 'calc((5vw + 5vh) / 2)'
+const insetLeft = 'max(2rem, env(safe-area-inset-left))'
+const insetRight = 'max(2rem, env(safe-area-inset-right))'
+
 const Wrapper = styled.div`
   position: relative;
   overflow: hidden;
@@ -17,17 +21,15 @@ const Wrapper = styled.div`
 `
 
 const BackgroundImage = styled.img`
-  --blur-strength: calc((5vw + 5vh) / 2);
-
-  position: absolute;
-  top: calc(-2 * var(--blur-strength));
-  left: calc(-2 * var(--blur-strength));
-  width: calc(4 * var(--blur-strength) + 100vw);
-  height: calc(4 * var(--blur-strength) + 100vh);
+  position: fixed;
+  top: calc(-2 * ${blurStrength});
+  left: calc(-2 * ${blurStrength});
+  width: calc(4 * ${blurStrength} + 100vw);
+  height: calc(4 * ${blurStrength} + 100vh);
 
   object-fit: cover;
 
-  filter: blur(var(--blur-strength));
+  filter: blur(${blurStrength});
 
   z-index: -1;
   pointer-events: none;
@@ -38,21 +40,26 @@ const MainImage = styled.img`
   min-height: 0;
 
   margin: 1rem 2rem 0;
+  margin-top: max(1rem, env(safe-area-inset-top));
+  margin-left: ${insetLeft};
+  margin-right: ${insetRight};
 
   object-fit: scale-down;
 `
 
 const Meta = styled.p`
   align-self: center;
-  box-sizing: border-box;
-  max-width: calc(100% - 4rem);
-  height: 2.5rem;
-  padding: 0 1rem;
-  margin: 0.69rem 0;
-  border-radius: 0.5rem;
+  height: 2rem;
+  padding: 0.1rem 1rem;
+  margin: 0.69rem 0 0;
   overflow: hidden;
 
+  padding-bottom: max(0.1rem, env(safe-area-inset-bottom));
+  max-width: calc(100% - 4rem);
+  max-width: calc(100% - ${insetLeft} - ${insetRight});
+
   display: flex;
+  flex: none;
   align-items: center;
   justify-content: flex-end;
 
@@ -60,8 +67,6 @@ const Meta = styled.p`
 
   white-space: nowrap;
 `
-
-const randAdjust = Array.from(new Array(200), () => Math.random())
 
 const transparent =
   'data:image/gif;base64,R0lGODlhAQABAIAAA' +
@@ -79,7 +84,9 @@ class Splash extends React.Component {
 
   componentDidMount() {
     const { dispatch } = this.props
-    dispatch(fetch())
+    dispatch(fetch(1))
+    dispatch(fetch(100))
+    dispatch(fetch(200))
 
     window.addEventListener('resize', this.updateImageSize)
   }
@@ -125,13 +132,13 @@ class Splash extends React.Component {
       score += indexScore * 3
 
       const coverageScore = postImageCoverage(post, imageWidth, imageHeight)
-      score += coverageScore * 2
+      score += coverageScore * 4
 
       const aspectScore = postImageCoverage(post, imageWidth, imageHeight, true)
       score += aspectScore * 2
 
-      const randomScore = randAdjust[index]
-      score += randomScore
+      const randomScore = randAdjust(index)
+      score += randomScore * 2
 
       if (score > bestScore) {
         bestScore = score
@@ -152,7 +159,7 @@ class Splash extends React.Component {
       <Wrapper>
         <BackgroundImage src={src} />
         <MainImage innerRef={this.saveImageRef} src={src} />
-        <Meta>{post ? generatePostTitle(post) : 'Loading'}</Meta>
+        <Meta>{post && generatePostTitle(post)}</Meta>
       </Wrapper>
     )
   }
@@ -165,3 +172,7 @@ export default connect(
     danbooru
   })
 )(Splash)
+
+const randAdjust = function self(index) {
+  return self[index] || (self[index] = 1 - Math.random())
+}
