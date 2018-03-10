@@ -44,7 +44,8 @@ const MainImage = styled.img`
   margin-left: ${insetLeft};
   margin-right: ${insetRight};
 
-  object-fit: scale-down;
+  object-fit: ${({ isLoading }) => (isLoading ? 'contain' : 'scale-down')};
+  ${({ isLoading }) => isLoading && `filter: blur(calc((0.5vw + 0.5vh) / 2))`};
 `
 
 const Meta = styled.p`
@@ -85,7 +86,7 @@ class Splash extends React.Component {
   componentDidMount() {
     const { dispatch } = this.props
     dispatch(fetch(1))
-    dispatch(fetch(100))
+    dispatch(fetch(20))
     dispatch(fetch(200))
 
     window.addEventListener('resize', this.updateImageSize)
@@ -116,10 +117,20 @@ class Splash extends React.Component {
     })
   }
 
+  imageLoaded = () => {
+    if (this.props.posts.length < 200) {
+      this.forceUpdate()
+    }
+  }
+
   pickPost() {
     const { imageWidth, imageHeight } = this.state
     const { data, posts } = this.props
     if (!posts.length) return
+
+    if (posts.length < 200) {
+      return data[posts[Math.floor(Math.random() * posts.length)]]
+    }
 
     let bestPost = null
     let bestScore = -Infinity
@@ -150,15 +161,18 @@ class Splash extends React.Component {
   }
 
   render() {
-    const { danbooru } = this.props
+    const { danbooru, posts } = this.props
+    const loading = posts.length < 200
     const post = this.pickPost()
 
-    const src = post ? danbooru.url(post.file_url) : transparent
+    const src = post
+      ? danbooru.url(loading ? post.preview_file_url : post.file_url)
+      : transparent
 
     return (
       <Wrapper>
-        <BackgroundImage src={src} />
-        <MainImage innerRef={this.saveImageRef} src={src} />
+        <BackgroundImage src={src} onLoad={this.imageLoaded} />
+        <MainImage innerRef={this.saveImageRef} src={src} isLoading={loading} />
         <Meta>{post && generatePostTitle(post)}</Meta>
       </Wrapper>
     )
