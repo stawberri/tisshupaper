@@ -145,7 +145,7 @@ class Splash extends React.Component {
   }
 
   mainImageLoaded = () => {
-    this.randomizePost()
+    setTimeout(() => this.randomizePost(), 1000)
   }
 
   preloadLoaded = () => {
