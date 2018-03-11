@@ -2,8 +2,9 @@ import React from 'react'
 import styled from 'styled-components'
 import { connect } from 'react-redux'
 import { fetch } from 'store/actions/splash'
-
 import { generatePostTitle, postImageCoverage } from 'utils/danbooru'
+
+import Image from './image'
 
 const blurStrength = 'calc((5vw + 5vh) / 2)'
 const insetLeft = 'max(2rem, env(safe-area-inset-left))'
@@ -20,14 +21,12 @@ const Wrapper = styled.div`
   flex-flow: column nowrap;
 `
 
-const BackgroundImage = styled.img`
+const BackgroundImage = styled(Image).attrs({ cover: true })`
   position: fixed;
   top: calc(-2 * ${blurStrength});
   left: calc(-2 * ${blurStrength});
   width: calc(4 * ${blurStrength} + 100vw);
   height: calc(4 * ${blurStrength} + 100vh);
-
-  object-fit: cover;
 
   filter: blur(${blurStrength});
 
@@ -35,7 +34,7 @@ const BackgroundImage = styled.img`
   pointer-events: none;
 `
 
-const MainImage = styled.img`
+const MainImage = styled(Image).attrs({ scale: 'down' })`
   flex: auto;
   min-height: 0;
 
@@ -44,7 +43,6 @@ const MainImage = styled.img`
   margin-left: ${insetLeft};
   margin-right: ${insetRight};
 
-  object-fit: ${({ isLoading }) => (isLoading ? 'contain' : 'scale-down')};
   ${({ isLoading }) => isLoading && `filter: blur(calc((0.5vw + 0.5vh) / 2))`};
 `
 
@@ -68,10 +66,6 @@ const Meta = styled.p`
 
   white-space: nowrap;
 `
-
-const transparent =
-  'data:image/gif;base64,R0lGODlhAQABAIAAA' +
-  'AAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
 
 class Splash extends React.Component {
   constructor(props) {
@@ -194,17 +188,14 @@ class Splash extends React.Component {
 
   render() {
     const { loading, pickedPost } = this.state
-    const { danbooru, data } = this.props
+    const { data } = this.props
 
     const post = loading ? data[loading] : pickedPost
-    const src = post
-      ? danbooru.url(loading ? post.preview_file_url : post.file_url)
-      : transparent
 
     return (
-      <Wrapper>
-        <BackgroundImage src={src} onLoad={this.mainImageLoaded} />
-        <MainImage innerRef={this.saveImageRef} src={src} isLoading={loading} />
+      <Wrapper innerRef={this.saveImageRef}>
+        <BackgroundImage id={post && post.id} onLoad={this.mainImageLoaded} />
+        <MainImage id={post && post.id} />
         <Meta>{post && generatePostTitle(post)}</Meta>
       </Wrapper>
     )

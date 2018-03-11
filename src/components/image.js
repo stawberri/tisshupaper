@@ -14,8 +14,8 @@ const Wrapper = styled.div`
 `
 
 const Picture = styled.img`
-  width: ${({ sizeData: { width } }) => width};
-  height: ${({ sizeData: { height } }) => height};
+  width: ${({ sizeData: { width } }) => width}px;
+  height: ${({ sizeData: { height } }) => height}px;
 
   object-fit: contain;
 `
@@ -32,7 +32,9 @@ class Image extends React.Component {
 
     this.state = {
       target: 0,
-      loaded: []
+      loaded: [],
+      width: 0,
+      height: 0
     }
   }
 
@@ -44,8 +46,9 @@ class Image extends React.Component {
 
   componentWillReceiveProps(props) {
     let oldProps = this.props
+    const { post } = props
 
-    if (props.post && oldProps.post !== props.post) this.beginPreload(true)
+    if (post && oldProps.post !== post) this.beginPreload(post)
   }
 
   componentWillUnmount() {
@@ -56,9 +59,11 @@ class Image extends React.Component {
     this.resizeObserver.disconnect()
   }
 
-  async beginPreload(skipCheck) {
+  async beginPreload(override) {
+    if (!override && !this.props.post) return
+
     const target = postImageEstimation(this.getSize())
-    if (!skipCheck) {
+    if (!override) {
       if (this.state.target === target) return
       else if (this.state.loaded[target]) return this.setState({ target })
     }
@@ -99,7 +104,7 @@ class Image extends React.Component {
 
   getSize() {
     const { post, cover, scale } = this.props
-    const { containerWidth, containerHeight } = this
+    const { width: containerWidth, height: containerHeight } = this.state
 
     if (!post) return { width: 0, height: 0 }
     if (!containerWidth || !containerHeight) return { width: 0, height: 0 }
@@ -136,10 +141,10 @@ class Image extends React.Component {
       let { clientWidth: width, clientHeight: height } = ref
       const style = getComputedStyle(ref)
 
-      width -= parseInt(style.paddingLeft)
-      width -= parseInt(style.paddingRight)
-      height -= parseInt(style.paddingTop)
-      height -= parseInt(style.paddingBottom)
+      width -= parseInt(style.paddingLeft, 10)
+      width -= parseInt(style.paddingRight, 10)
+      height -= parseInt(style.paddingTop, 10)
+      height -= parseInt(style.paddingBottom, 10)
 
       this.setSize(width, height)
     } else {
@@ -149,18 +154,20 @@ class Image extends React.Component {
 
   resizeObserved = entries => {
     const entry = entries.find(({ target }) => target === this.wrapper)
-    this.setSize(entry.width, entry.height)
+    const { width, height } = entry.contentRect
+    this.setSize(width, height)
   }
 
-  setSize = (containerWidth, containerHeight) => {
-    Object.assign(this, { containerWidth, containerHeight })
+  setSize = async (width, height) => {
+    await new Promise(done => this.setState({ width, height }, done))
+    ;({ width, height } = this.state)
 
-    if (containerWidth || containerHeight) this.beginPreload()
+    if (width || height) this.beginPreload()
   }
 
   render() {
     const { target, loaded } = this.state
-    const { post, danbooru } = this.props
+    const { className, post, danbooru } = this.props
 
     let src
     if (!post);
@@ -171,7 +178,9 @@ class Image extends React.Component {
     const sizeData = this.getSize()
 
     return (
-      <Wrapper>{post && <Picture src={src} sizeData={sizeData} />}</Wrapper>
+      <Wrapper className={className} innerRef={this.wrapperRef}>
+        {post && <Picture src={src} sizeData={sizeData} />}
+      </Wrapper>
     )
   }
 }
