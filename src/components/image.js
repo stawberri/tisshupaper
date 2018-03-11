@@ -2,20 +2,25 @@ import React from 'react'
 import { connect } from 'react-redux'
 import styled from 'styled-components'
 import { resize } from 'utils/image'
-import { postImageEstimation } from 'utils/danbooru'
+import { postSize, postColor } from 'utils/danbooru'
 import ResizeObserver from 'resize-observer-polyfill'
 
 const Wrapper = styled.div`
+  position: relative;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
   overflow: hidden;
 `
 
-const Picture = styled.img`
-  position: relative;
-  top: ${({ sizeData: { top } }) => top}px;
-  left: ${({ sizeData: { left } }) => left}px;
-  width: ${({ sizeData: { width } }) => width}px;
-  height: ${({ sizeData: { height } }) => height}px;
+const Placeholder = styled.div`
+  flex: none;
+`
 
+const Picture = styled.img`
+  flex: none;
   object-fit: contain;
 `
 
@@ -61,7 +66,7 @@ class Image extends React.Component {
   async beginPreload(override) {
     if (!override && !this.props.post) return
 
-    const target = postImageEstimation(this.getSize())
+    const target = postSize(this.getSize())
     if (!override) {
       if (this.state.target === target) return
       else if (this.state.loaded[target]) return this.setState({ target })
@@ -101,33 +106,6 @@ class Image extends React.Component {
     }
   }
 
-  getSize() {
-    const { post, cover, scale } = this.props
-    const { width: containerWidth, height: containerHeight } = this.state
-
-    if (!post) return { width: 0, height: 0 }
-    if (!containerWidth || !containerHeight) return { width: 0, height: 0 }
-
-    const { image_width, image_height } = post
-
-    let width, height
-    ;({ width, height } = resize(
-      { width: image_width, height: image_height },
-      { width: containerWidth, height: containerHeight },
-      cover
-    ))
-
-    if (
-      (scale === 'down' && width > image_width) ||
-      (scale === 'up' && width < image_width)
-    ) {
-      width = image_width
-      height = image_height
-    }
-
-    return { width, height }
-  }
-
   wrapperRef = ref => {
     const { resizeObserver } = this
 
@@ -162,32 +140,61 @@ class Image extends React.Component {
     height = Math.round(height)
 
     await new Promise(done => this.setState({ width, height }, done))
-    ;({ width, height } = this.state)
 
     if (width || height) this.beginPreload()
   }
 
+  getSize() {
+    const { post, cover, scale } = this.props
+    const { width: containerWidth, height: containerHeight } = this.state
+
+    if (!post) return { width: 0, height: 0 }
+    if (!containerWidth || !containerHeight) return { width: 0, height: 0 }
+
+    const { image_width, image_height } = post
+
+    let width, height
+    ;({ width, height } = resize(
+      { width: image_width, height: image_height },
+      { width: containerWidth, height: containerHeight },
+      cover
+    ))
+
+    if (
+      (scale === 'down' && width > image_width) ||
+      (scale === 'up' && width < image_width)
+    ) {
+      width = image_width
+      height = image_height
+    }
+
+    return { width, height }
+  }
+
   render() {
-    const { target, loaded, width, height } = this.state
+    const { target, loaded } = this.state
     const { className, post, danbooru } = this.props
+    const { preview_file_url, large_file_url, file_url } = post || {}
+
+    const style = this.getSize()
+    const visible = post && style.width > 0 && style.height > 0
 
     let src
-    if (!post) src = null
-    else if (target >= 2 && loaded[2]) src = danbooru.url(post.file_url)
-    else if (target >= 1 && loaded[1]) src = danbooru.url(post.large_file_url)
-    else src = danbooru.url(post.preview_file_url)
-
-    const size = this.getSize()
-    const validSize = size.width > 0 && size.height > 0
-    const sizeData = {
-      ...size,
-      top: (height - size.height) / 2,
-      left: (width - size.width) / 2
+    if (visible) {
+      if (target === 2 && loaded[2]) src = danbooru.url(file_url)
+      else if (target >= 1 && loaded[1]) src = danbooru.url(large_file_url)
+      else if (loaded[0]) src = danbooru.url(preview_file_url)
+      else style.background = postColor(post)
     }
 
     return (
       <Wrapper className={className} innerRef={this.wrapperRef}>
-        {post && validSize && <Picture src={src} sizeData={sizeData} />}
+        {visible &&
+          (src ? (
+            <Picture src={src} style={style} />
+          ) : (
+            <Placeholder style={style} />
+          ))}
       </Wrapper>
     )
   }

@@ -1,3 +1,5 @@
+import chroma from 'chroma-js'
+
 export function generatePostTitle(post) {
   let title = ''
 
@@ -50,7 +52,7 @@ export function generatePostTitle(post) {
   }
 }
 
-export function postImageEstimation(width, height) {
+export function postSize(width, height) {
   const { devicePixelRatio = 1 } = window
 
   width *= devicePixelRatio
@@ -65,4 +67,17 @@ export function postImageEstimation(width, height) {
   preview: 150x96 119x150 106x150
   large: 850x544 850x1074 850x1200
   */
+}
+
+export function postColor(post) {
+  const tagWords = post.tag_string_general.replace(/_/g, ' ').split(' ')
+
+  const colors = []
+  for (const word of tagWords) {
+    try {
+      colors.push(chroma(word))
+    } catch (error) {}
+  }
+
+  return chroma.average(colors).hex()
 }
