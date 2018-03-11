@@ -1,36 +1,39 @@
 export function generatePostTitle(post) {
   let title = ''
 
-  const characters = format(post.tag_string_character)
-  const copyrights = format(post.tag_string_copyright)
   const artists = format(post.tag_string_artist)
+  const copyrights = format(post.tag_string_copyright)
+  const characters = format(post.tag_string_character, tag =>
+    tag.replace(/\([^)]*\)/g, '')
+  )
 
   if (!characters) {
-    if (!copyrights) {
-      title = 'drawn'
-    } else {
-      title = copyrights
-    }
+    title = copyrights
   } else {
     title = characters
-
-    if (copyrights) {
-      title += ` (${copyrights})`
-    }
+    if (copyrights) title += ` (${copyrights})`
   }
 
-  if (artists) {
-    title += ` by ${artists}`
-  }
+  if (artists) title += ` drawn by ${artists}`
+  return title.trim()
 
-  return title
-
-  function format(tagString) {
-    const list = tagString.split(' ')
+  function format(tagString, process) {
+    const dup = []
+    const list = tagString
+      .split(' ')
+      .map(tag => {
+        tag = tag.replace(/_/g, ' ')
+        if (process) tag = process(tag)
+        return tag
+      })
+      .filter(tag => {
+        if (~dup.indexOf(tag)) return false
+        return dup.push(tag)
+      })
 
     switch (list.length) {
       case 0:
-        return
+        return ''
       case 1:
         return list[0]
       case 2:

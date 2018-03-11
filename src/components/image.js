@@ -170,16 +170,17 @@ class Image extends React.Component {
     const { className, post, danbooru } = this.props
 
     let src
-    if (!post);
+    if (!post) src = null
     else if (target >= 2 && loaded[2]) src = danbooru.url(post.file_url)
     else if (target >= 1 && loaded[1]) src = danbooru.url(post.large_file_url)
     else src = danbooru.url(post.preview_file_url)
 
     const sizeData = this.getSize()
+    const validSize = sizeData.width > 0 && sizeData.height > 0
 
     return (
       <Wrapper className={className} innerRef={this.wrapperRef}>
-        {post && <Picture src={src} sizeData={sizeData} />}
+        {post && validSize && <Picture src={src} sizeData={sizeData} />}
       </Wrapper>
     )
   }
