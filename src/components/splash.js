@@ -2,23 +2,18 @@ import React from 'react'
 import styled from 'styled-components'
 import { connect } from 'react-redux'
 import { fetch } from 'store/actions/splash'
-import { generatePostTitle, postImageCoverage } from 'utils/danbooru'
+import { generatePostTitle } from 'utils/danbooru'
+import { resize, contained, coverage } from 'utils/image'
 
 import Image from './image'
 
 const blurStrength = 'calc((5vw + 5vh) / 2)'
-const insetLeft = 'max(2rem, env(safe-area-inset-left))'
-const insetRight = 'max(2rem, env(safe-area-inset-right))'
 
 const Wrapper = styled.div`
   position: relative;
   overflow: hidden;
 
   height: 100%;
-  box-sizing: border-box;
-
-  display: flex;
-  flex-flow: column nowrap;
 `
 
 const BackgroundImage = styled(Image).attrs({ cover: true })`
@@ -34,37 +29,36 @@ const BackgroundImage = styled(Image).attrs({ cover: true })`
   pointer-events: none;
 `
 
-const MainImage = styled(Image).attrs({ scale: 'down' })`
-  flex: auto;
-  min-height: 0;
-
-  margin: 1rem 2rem 0;
-  margin-top: max(1rem, env(safe-area-inset-top));
-  margin-left: ${insetLeft};
-  margin-right: ${insetRight};
-
-  ${({ isLoading }) => isLoading && `filter: blur(calc((0.5vw + 0.5vh) / 2))`};
+const MainImage = styled(Image).attrs({ cover: true })`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 `
 
 const Meta = styled.p`
-  align-self: center;
-  height: 2rem;
-  padding: 0.1rem 1rem;
-  margin: 0.69rem 0 0;
-  overflow: hidden;
+  position: absolute;
+  bottom: 0;
 
-  padding-bottom: max(0.1rem, env(safe-area-inset-bottom));
-  max-width: calc(100% - 4rem);
-  max-width: calc(100% - ${insetLeft} - ${insetRight});
+  box-sizing: border-box;
+  height: 2rem;
+  max-width: 100%;
+
+  padding: 0 1rem;
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+  margin: 0 0 1rem;
+  margin-bottom: max(1rem, env(safe-area-inset-bottom));
 
   display: flex;
   flex: none;
   align-items: center;
   justify-content: flex-end;
 
-  background: white;
-
+  background: rgba(255, 255, 255, 0.69);
   white-space: nowrap;
+  overflow: hidden;
 `
 
 class Splash extends React.Component {
@@ -72,9 +66,8 @@ class Splash extends React.Component {
     super(props)
 
     this.state = {
-      imageWidth: 0,
-      imageHeight: 0,
-      loading: true,
+      width: 0,
+      height: 0,
       pickedPost: null
     }
   }
@@ -83,23 +76,18 @@ class Splash extends React.Component {
     this.preloadImg = document.createElement('img')
     this.preloadImg.addEventListener('load', this.preloadLoaded)
 
-    this.randomizePost()
-
     const { dispatch } = this.props
-    dispatch(fetch(1))
-    dispatch(fetch(20))
     dispatch(fetch(200))
+
+    this.updateImageSize()
 
     window.addEventListener('resize', this.updateImageSize)
   }
 
   componentWillReceiveProps(props) {
-    this.randomizePost(props)
-
     const { posts } = props
-    if (posts.length >= 200) {
-      this.pickPost()
-    }
+    const { posts: oldPosts } = this.props
+    if (posts !== oldPosts && posts.length) this.pickPost(props)
   }
 
   componentWillUnmount() {
@@ -108,69 +96,47 @@ class Splash extends React.Component {
     this.preloadImg.removeEventListener('load', this.preloadLoaded)
   }
 
-  randomizePost({ data, posts } = this.props, force) {
-    const post =
-      this.state.pickedPost ||
-      data[posts[Math.floor(Math.random() * posts.length)]]
-    const id = (post && post.id) || true
-    this.setState(({ loading }) => ({ loading: (force || loading) && id }))
-  }
+  updateImageSize = async () => {
+    if (this.updateImageAnimationFrame)
+      cancelAnimationFrame(this.updateImageAnimationFrame)
 
-  saveImageRef = ref => {
-    if (ref) this.mainImageRef = ref
-    this.updateImageSize()
-  }
+    await new Promise(
+      done => (this.updateImageAnimationFrame = requestAnimationFrame(done))
+    )
 
-  updateImageSize = () => {
-    if (this.updateImageAnimationFrame) return
-    this.updateImageAnimationFrame = requestAnimationFrame(() => {
-      delete this.updateImageAnimationFrame
+    delete this.updateImageAnimationFrame
 
-      const ref = this.mainImageRef
-      if (!ref) return
-
-      this.setState({
-        imageWidth: ref.clientWidth,
-        imageHeight: ref.clientHeight
-      })
-
-      this.pickPost()
+    this.setState({
+      width: window.innerWidth,
+      height: window.innerHeight
     })
+
+    this.pickPost()
   }
 
-  mainImageLoaded = () => {
-    setTimeout(() => this.randomizePost(), 1000)
-  }
-
-  preloadLoaded = () => {
-    if (this.preloadId === this.state.pickedPost.id) {
-      this.setState({ loading: false })
-    }
-  }
-
-  pickPost() {
-    const { imageWidth, imageHeight } = this.state
-    const { data, posts, danbooru } = this.props
+  pickPost(props = this.props) {
+    const { width, height } = this.state
+    const { data, posts, danbooru } = props
     if (!posts.length) return
 
     let pickedPost = null
     let pickedScore = -Infinity
 
+    const size = { width, height }
+
     posts.forEach((id, index) => {
       let score = 0
       const post = data[id]
+      const postSize = { width: post.image_width, height: post.image_height }
+      const resized = resize(postSize, size, true)
 
       const indexScore = 1 - index / 200
-      score += indexScore * 3
+      const rawCoverageScore = coverage(postSize, size)
+      const missingScore = coverage(size, resized)
 
-      const coverageScore = postImageCoverage(post, imageWidth, imageHeight)
-      score += coverageScore * 4
-
-      const aspectScore = postImageCoverage(post, imageWidth, imageHeight, true)
-      score += aspectScore * 2
-
-      const randomScore = randAdjust(index)
-      score += randomScore * 2
+      score += indexScore * 2
+      score += rawCoverageScore
+      score += missingScore * (1 + !contained(postSize, size))
 
       if (score > pickedScore) {
         pickedScore = score
@@ -179,7 +145,6 @@ class Splash extends React.Component {
     })
 
     if (!this.state.pickedPost || this.state.pickedPost.id !== pickedPost.id) {
-      this.randomizePost(undefined, true)
       this.setState({ pickedPost })
       this.preloadId = pickedPost.id
       this.preloadImg.src = danbooru.url(pickedPost.file_url)
@@ -187,14 +152,11 @@ class Splash extends React.Component {
   }
 
   render() {
-    const { loading, pickedPost } = this.state
-    const { data } = this.props
-
-    const post = loading ? data[loading] : pickedPost
+    const { pickedPost: post } = this.state
 
     return (
-      <Wrapper innerRef={this.saveImageRef}>
-        <BackgroundImage id={post && post.id} onLoad={this.mainImageLoaded} />
+      <Wrapper>
+        <BackgroundImage id={post && post.id} />
         <MainImage id={post && post.id} />
         <Meta>{post && generatePostTitle(post)}</Meta>
       </Wrapper>
@@ -209,7 +171,3 @@ export default connect(
     danbooru
   })
 )(Splash)
-
-const randAdjust = function self(index) {
-  return self[index] || (self[index] = 1 - Math.random())
-}

@@ -6,14 +6,13 @@ import { postImageEstimation } from 'utils/danbooru'
 import ResizeObserver from 'resize-observer-polyfill'
 
 const Wrapper = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
   overflow: hidden;
 `
 
 const Picture = styled.img`
+  position: relative;
+  top: ${({ sizeData: { top } }) => top}px;
+  left: ${({ sizeData: { left } }) => left}px;
   width: ${({ sizeData: { width } }) => width}px;
   height: ${({ sizeData: { height } }) => height}px;
 
@@ -159,6 +158,9 @@ class Image extends React.Component {
   }
 
   setSize = async (width, height) => {
+    width = Math.round(width)
+    height = Math.round(height)
+
     await new Promise(done => this.setState({ width, height }, done))
     ;({ width, height } = this.state)
 
@@ -166,7 +168,7 @@ class Image extends React.Component {
   }
 
   render() {
-    const { target, loaded } = this.state
+    const { target, loaded, width, height } = this.state
     const { className, post, danbooru } = this.props
 
     let src
@@ -175,8 +177,13 @@ class Image extends React.Component {
     else if (target >= 1 && loaded[1]) src = danbooru.url(post.large_file_url)
     else src = danbooru.url(post.preview_file_url)
 
-    const sizeData = this.getSize()
-    const validSize = sizeData.width > 0 && sizeData.height > 0
+    const size = this.getSize()
+    const validSize = size.width > 0 && size.height > 0
+    const sizeData = {
+      ...size,
+      top: (height - size.height) / 2,
+      left: (width - size.width) / 2
+    }
 
     return (
       <Wrapper className={className} innerRef={this.wrapperRef}>
