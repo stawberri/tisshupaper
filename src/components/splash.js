@@ -38,7 +38,7 @@ const MainImage = styled(Image).attrs({ cover: true })`
 `
 
 const Meta = styled.p`
-  position: absolute;
+  position: fixed;
   bottom: 0;
 
   box-sizing: border-box;
