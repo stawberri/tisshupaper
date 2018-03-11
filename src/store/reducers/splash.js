@@ -1,4 +1,4 @@
-import actions from '../actions/splash'
+import actions from 'store/actions/splash'
 
 const init = {
   posts: []

@@ -1,4 +1,4 @@
-import actions from '../actions/config'
+import actions from 'store/actions/config'
 import Danbooru from 'danbooru'
 
 const init = {

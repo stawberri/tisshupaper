@@ -47,6 +47,18 @@ export function generatePostTitle(post) {
   }
 }
 
+export function postImageEstimation(width, height) {
+  if (width <= 150 && height <= 150) return 0
+  else if (width <= 850) return 1
+  else return 2
+
+  /*
+  random size sampling
+  preview: 150x96 119x150 106x150
+  large: 850x544 850x1074 850x1200
+  */
+}
+
 export function postImageCoverage(post, width, height, ignoreSize) {
   if (!post) return 0
 
