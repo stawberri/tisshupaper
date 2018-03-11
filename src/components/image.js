@@ -3,7 +3,8 @@ import { connect } from 'react-redux'
 import styled from 'styled-components'
 import { resize } from 'utils/image'
 import { postSize, postColor } from 'utils/danbooru'
-import ResizeObserver from 'resize-observer-polyfill'
+import resized from 'utils/resized'
+import transparent from 'img/transparent.gif'
 
 const Wrapper = styled.div`
   position: relative;
@@ -15,10 +16,6 @@ const Wrapper = styled.div`
   overflow: hidden;
 `
 
-const Placeholder = styled.div`
-  flex: none;
-`
-
 const Picture = styled.img`
   flex: none;
   object-fit: contain;
@@ -27,8 +24,6 @@ const Picture = styled.img`
 class Image extends React.Component {
   constructor(props) {
     super(props)
-
-    this.resizeObserver = new ResizeObserver(this.resizeObserved)
 
     this.preloaders = Array.from(new Array(3), () =>
       document.createElement('img')
@@ -59,8 +54,6 @@ class Image extends React.Component {
     this.preloaders.forEach(img =>
       img.removeEventListener('load', this.preloaderLoaded)
     )
-
-    this.resizeObserver.disconnect()
   }
 
   async beginPreload(override) {
@@ -99,7 +92,8 @@ class Image extends React.Component {
       }
 
       const { target } = this.state
-      const { onLoad } = this.props
+      const { onLoad, onLoadPreview } = this.props
+      if (i === 0 && onLoadPreview) onLoadPreview()
       if (target === i && onLoad) onLoad()
 
       return
@@ -107,13 +101,9 @@ class Image extends React.Component {
   }
 
   wrapperRef = ref => {
-    const { resizeObserver } = this
-
-    if (this.wrapper) resizeObserver.unobserve(this.wrapper)
-    this.wrapper = ref
-
+    if (this.unobserve) this.unobserve()
     if (ref) {
-      resizeObserver.observe(ref)
+      this.unobserve = resized(ref, this.resizeObserved)
 
       let { clientWidth: width, clientHeight: height } = ref
       const style = getComputedStyle(ref)
@@ -129,8 +119,7 @@ class Image extends React.Component {
     }
   }
 
-  resizeObserved = entries => {
-    const entry = entries.find(({ target }) => target === this.wrapper)
+  resizeObserved = entry => {
     const { width, height } = entry.contentRect
     this.setSize(width, height)
   }
@@ -148,8 +137,8 @@ class Image extends React.Component {
     const { post, cover, scale } = this.props
     const { width: containerWidth, height: containerHeight } = this.state
 
-    if (!post) return { width: 0, height: 0 }
-    if (!containerWidth || !containerHeight) return { width: 0, height: 0 }
+    if (!containerWidth || !containerHeight) return { width: 69, height: 69 }
+    if (!post) return { width: containerWidth, height: containerHeight }
 
     const { image_width, image_height } = post
 
@@ -177,10 +166,9 @@ class Image extends React.Component {
     const { preview_file_url, large_file_url, file_url } = post || {}
 
     const style = this.getSize()
-    const visible = post && style.width > 0 && style.height > 0
 
-    let src
-    if (visible) {
+    let src = transparent
+    if (post) {
       if (target === 2 && loaded[2]) src = danbooru.url(file_url)
       else if (target >= 1 && loaded[1]) src = danbooru.url(large_file_url)
       else if (loaded[0]) src = danbooru.url(preview_file_url)
@@ -189,12 +177,7 @@ class Image extends React.Component {
 
     return (
       <Wrapper className={className} innerRef={this.wrapperRef}>
-        {visible &&
-          (src ? (
-            <Picture src={src} style={style} />
-          ) : (
-            <Placeholder style={style} />
-          ))}
+        <Picture src={src} style={style} />
       </Wrapper>
     )
   }
