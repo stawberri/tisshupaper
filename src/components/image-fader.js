@@ -74,8 +74,6 @@ export default class ImageFader extends React.Component {
   render() {
     const { saved } = this.state
 
-    console.log(saved)
-
     const {
       children,
       classNames,
