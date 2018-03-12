@@ -1,6 +1,6 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import styled, { keyframes } from 'styled-components'
+import styled, { keyframes, css } from 'styled-components'
 import { resize } from 'utils/image'
 import { postSize, postColor } from 'utils/danbooru'
 import resized from 'utils/resized'
@@ -27,12 +27,14 @@ const Picture = styled.img`
   flex: none;
   object-fit: contain;
 
-  &.loading {
-    background: 0 0 / 2rem 2rem;
-    animation: ${scrollBg} 1s linear infinite;
+  ${({ isLoading }) =>
+    isLoading &&
+    css`
+      background: 0 0 / 2rem 2rem;
+      animation: ${scrollBg} 1s linear infinite;
 
-    backdrop-filter: blur(0.5rem);
-  }
+      backdrop-filter: blur(0.5rem);
+    `};
 `
 
 class Image extends React.Component {
@@ -185,14 +187,14 @@ class Image extends React.Component {
     const style = this.getSize()
     const target = this.getTarget()
 
-    let pictureClass
+    let isLoading = false
     let src = transparent
     if (post) {
       if (target >= 2 && loaded[2]) src = danbooru.url(file_url)
       else if (target >= 1 && loaded[1]) src = danbooru.url(large_file_url)
       else if (loaded[0]) src = danbooru.url(preview_file_url)
       else {
-        pictureClass = 'loading'
+        isLoading = true
 
         const color = postColor(post)
         const color1 = color.alpha(0.69).css()
@@ -210,7 +212,7 @@ class Image extends React.Component {
 
     return (
       <Wrapper className={className} innerRef={this.wrapperRef}>
-        <Picture src={src} style={style} className={pictureClass} />
+        <Picture src={src} style={style} isLoading={isLoading} />
       </Wrapper>
     )
   }
