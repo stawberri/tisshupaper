@@ -1,7 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
 import { connect } from 'react-redux'
-import { fetch } from 'store/actions/splash'
 import { generatePostTitle } from 'utils/danbooru'
 import { resize, contained, coverage } from 'utils/image'
 import resized from 'utils/resized'
@@ -70,11 +69,6 @@ class Splash extends React.Component {
       width: 0,
       height: 0
     }
-  }
-
-  componentDidMount() {
-    const { dispatch } = this.props
-    dispatch(fetch(200))
   }
 
   updateImageSize(width, height) {
