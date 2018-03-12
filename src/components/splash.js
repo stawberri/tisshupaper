@@ -6,6 +6,7 @@ import { resize, contained, coverage } from 'utils/image'
 import resized from 'utils/resized'
 
 import Image from './image'
+import ImageFader from './image-fader'
 
 const Wrapper = styled.div`
   position: relative;
@@ -34,6 +35,11 @@ const MainImage = styled(Image).attrs({ cover: true })`
   left: 0;
   width: 100%;
   height: 100%;
+
+  &.-exit-active {
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
 `
 
 const Meta = styled.p`
@@ -128,7 +134,9 @@ class Splash extends React.Component {
         {post && (
           <React.Fragment>
             {false && <BackgroundImage id={post.id} size={0} />}
-            <MainImage id={post.id} />
+            <ImageFader classNames="" timeout={500}>
+              <MainImage id={post.id} />
+            </ImageFader>
             <Meta>{generatePostTitle(post)}</Meta>
           </React.Fragment>
         )}
