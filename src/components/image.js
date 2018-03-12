@@ -5,6 +5,7 @@ import { resize } from 'utils/image'
 import { postSize, postColor } from 'utils/danbooru'
 import resized from 'utils/resized'
 import transparent from 'img/transparent.gif'
+import asap from 'asap'
 
 const Wrapper = styled.div`
   position: relative;
@@ -30,7 +31,6 @@ class Image extends React.Component {
     )
 
     this.state = {
-      target: 0,
       loaded: [],
       width: 0,
       height: 0
@@ -45,9 +45,10 @@ class Image extends React.Component {
 
   componentWillReceiveProps(props) {
     let oldProps = this.props
-    const { post } = props
+    const { post, size } = props
 
-    if (post && oldProps.post !== post) this.beginPreload(post)
+    if (oldProps.post !== post) asap(() => this.beginPreload(true))
+    else if (oldProps.size !== size) asap(() => this.beginPreload())
   }
 
   componentWillUnmount() {
@@ -56,22 +57,16 @@ class Image extends React.Component {
     )
   }
 
-  async beginPreload(override) {
-    if (!override && !this.props.post) return
+  async beginPreload(newPost) {
+    const { preloaders } = this
+    const { onLoadStart, post, danbooru } = this.props
 
-    const target = postSize(this.getSize())
-    if (!override) {
-      if (this.state.target === target) return
-      else if (this.state.loaded[target]) return this.setState({ target })
-    }
+    const target = this.getTarget()
+    if (!post || (!newPost && this.state.loaded[target])) return
 
-    const { onLoadStart } = this.props
     if (onLoadStart) onLoadStart()
 
-    await new Promise(done => this.setState({ target, loaded: [] }, done))
-
-    const { preloaders } = this
-    const { post, danbooru } = this.props
+    await new Promise(done => this.setState({ loaded: [] }, done))
 
     preloaders[0].src = danbooru.url(post.preview_file_url)
     if (target >= 1) preloaders[1].src = danbooru.url(post.large_file_url)
@@ -79,25 +74,22 @@ class Image extends React.Component {
   }
 
   preloaderLoaded = async event => {
+    const target = this.getTarget()
+    let { loaded } = this.state
+    const { onLoad, onLoadPreview } = this.props
     const { preloaders } = this
 
-    for (let i = 0; i < preloaders.length; i++) {
-      if (event.target !== preloaders[i]) continue
+    const index = preloaders.findIndex(preloader => event.target === preloader)
+    if (!~index) return
 
-      let { loaded } = this.state
-      if (!loaded[i]) {
-        loaded = loaded.slice()
-        loaded[i] = true
-        await new Promise(done => this.setState({ loaded }, done))
-      }
-
-      const { target } = this.state
-      const { onLoad, onLoadPreview } = this.props
-      if (i === 0 && onLoadPreview) onLoadPreview()
-      if (target === i && onLoad) onLoad()
-
-      return
+    if (!loaded[index]) {
+      loaded = loaded.slice()
+      loaded[index] = true
+      await new Promise(done => this.setState({ loaded }, done))
     }
+
+    if (!index && onLoadPreview) onLoadPreview()
+    if (target === index && onLoad) onLoad()
   }
 
   wrapperRef = ref => {
@@ -160,16 +152,21 @@ class Image extends React.Component {
     return { width, height }
   }
 
+  getTarget() {
+    return this.props.size || postSize(this.getSize(this.props))
+  }
+
   render() {
-    const { target, loaded } = this.state
+    const { loaded } = this.state
     const { className, post, danbooru } = this.props
     const { preview_file_url, large_file_url, file_url } = post || {}
 
     const style = this.getSize()
+    const target = this.getTarget()
 
     let src = transparent
     if (post) {
-      if (target === 2 && loaded[2]) src = danbooru.url(file_url)
+      if (target >= 2 && loaded[2]) src = danbooru.url(file_url)
       else if (target >= 1 && loaded[1]) src = danbooru.url(large_file_url)
       else if (loaded[0]) src = danbooru.url(preview_file_url)
       else style.background = postColor(post)
