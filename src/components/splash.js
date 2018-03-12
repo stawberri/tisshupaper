@@ -4,6 +4,7 @@ import { connect } from 'react-redux'
 import { fetch } from 'store/actions/splash'
 import { generatePostTitle } from 'utils/danbooru'
 import { resize, contained, coverage } from 'utils/image'
+import resized from 'utils/resized'
 
 import Image from './image'
 
@@ -67,56 +68,33 @@ class Splash extends React.Component {
 
     this.state = {
       width: 0,
-      height: 0,
-      pickedPost: null
+      height: 0
     }
   }
 
   componentDidMount() {
-    this.preloadImg = document.createElement('img')
-    this.preloadImg.addEventListener('load', this.preloadLoaded)
-
     const { dispatch } = this.props
     dispatch(fetch(200))
-
-    this.updateImageSize()
-
-    window.addEventListener('resize', this.updateImageSize)
   }
 
-  componentWillReceiveProps(props) {
-    const { posts } = props
-    const { posts: oldPosts } = this.props
-    if (posts !== oldPosts && posts.length) this.pickPost(props)
+  updateImageSize(width, height) {
+    this.setState({ width, height })
   }
 
-  componentWillUnmount() {
-    cancelAnimationFrame(this.updateImageAnimationFrame)
-    window.removeEventListener('resize', this.updateImageSize)
-    this.preloadImg.removeEventListener('load', this.preloadLoaded)
-  }
-
-  updateImageSize = async () => {
-    if (this.updateImageAnimationFrame)
-      cancelAnimationFrame(this.updateImageAnimationFrame)
-
-    await new Promise(
-      done => (this.updateImageAnimationFrame = requestAnimationFrame(done))
-    )
-
-    delete this.updateImageAnimationFrame
-
-    this.setState({
-      width: window.innerWidth,
-      height: window.innerHeight
+  wrapperRef = ref => {
+    if (this.unobserveWrapper) this.unobserveWrapper()
+    this.unobserveWrapper = resized(ref, entry => {
+      const { width, height } = entry.contentRect
+      this.updateImageSize(width, height)
     })
 
-    this.pickPost()
+    let { clientWidth: width, clientHeight: height } = ref
+    this.updateImageSize(width, height)
   }
 
   pickPost(props = this.props) {
     const { width, height } = this.state
-    const { data, posts, danbooru } = props
+    const { data, posts } = props
     if (!posts.length) return
 
     let pickedPost = null
@@ -144,21 +122,21 @@ class Splash extends React.Component {
       }
     })
 
-    if (!this.state.pickedPost || this.state.pickedPost.id !== pickedPost.id) {
-      this.setState({ pickedPost })
-      this.preloadId = pickedPost.id
-      this.preloadImg.src = danbooru.url(pickedPost.file_url)
-    }
+    return pickedPost
   }
 
   render() {
-    const { pickedPost: post } = this.state
+    const post = this.pickPost()
 
     return (
-      <Wrapper>
-        <BackgroundImage id={post && post.id} />
-        <MainImage id={post && post.id} />
-        <Meta>{post && generatePostTitle(post)}</Meta>
+      <Wrapper innerRef={this.wrapperRef}>
+        {post && (
+          <React.Fragment>
+            <BackgroundImage id={post.id} size={0} />
+            <MainImage id={post.id} />
+            <Meta>{generatePostTitle(post)}</Meta>
+          </React.Fragment>
+        )}
       </Wrapper>
     )
   }

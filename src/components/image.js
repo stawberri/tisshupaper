@@ -93,9 +93,12 @@ class Image extends React.Component {
   }
 
   wrapperRef = ref => {
-    if (this.unobserve) this.unobserve()
+    if (this.unobserveWrapper) this.unobserveWrapper()
     if (ref) {
-      this.unobserve = resized(ref, this.resizeObserved)
+      this.unobserveWrapper = resized(ref, entry => {
+        const { width, height } = entry.contentRect
+        this.setSize(width, height)
+      })
 
       let { clientWidth: width, clientHeight: height } = ref
       const style = getComputedStyle(ref)
@@ -111,15 +114,7 @@ class Image extends React.Component {
     }
   }
 
-  resizeObserved = entry => {
-    const { width, height } = entry.contentRect
-    this.setSize(width, height)
-  }
-
   setSize = async (width, height) => {
-    width = Math.round(width)
-    height = Math.round(height)
-
     await new Promise(done => this.setState({ width, height }, done))
 
     if (width || height) this.beginPreload()
@@ -153,7 +148,9 @@ class Image extends React.Component {
   }
 
   getTarget() {
-    return this.props.size || postSize(this.getSize(this.props))
+    const { size } = this.props
+    if (typeof size === 'number') return size
+    else return postSize(this.getSize(this.props))
   }
 
   render() {
