@@ -31,44 +31,44 @@ export default class ImageFader extends React.Component {
       if (!dataMap.get(saved[i]).loaded) saved.splice(i, 1)
     }
 
+    let key
+    let data
     if (save && save.props.id === child.props.id) {
-      const clonedChild = React.cloneElement(child, {
-        key: save.key
-      })
-
-      dataMap.set(clonedChild, dataMap.get(save))
-      saved.unshift(clonedChild)
+      key = save.key
+      data = dataMap.get(save)
     } else if (child) {
-      const clonedChild = React.cloneElement(child, {
-        key: generateKey(),
-        ref: this.childRef,
-        onLoad: this.childLoaded
-      })
-
-      dataMap.set(clonedChild, { onRef: child.props.ref })
-      saved.unshift(clonedChild)
+      if (save) saved.unshift(save)
+      key = generateKey()
+      data = {}
     }
+
+    const clonedChild = React.cloneElement(child, {
+      key: key,
+      imageRef: this.childRef,
+      onLoad: this.childLoaded
+    })
+
+    dataMap.set(clonedChild, data)
+    saved.unshift(clonedChild)
 
     this.setState({ saved })
   }
 
   childRef = ref => {
-    const saved = this.state.saved.slice()
-    const save = saved[0]
-    const saveData = dataMap.get(save)
-
+    const save = this.state.saved[0]
     if (!save || !ref || save.props.id !== ref.props.id) return
-    if (saveData.onRef) saveData.onRef.call(undefined, ref)
-
-    if (ref) saveData.ref = ref
-    else saved.shift()
-
-    this.setState({ saved })
+    else if (ref) dataMap.get(save).ref = ref
   }
 
   childLoaded = ({ ref }) => {
-    const save = this.state.saved.find(save => dataMap.get(save).ref === ref)
-    if (save) dataMap.get(save).loaded = true
+    const saved = this.state.saved.slice()
+    const index = saved.findIndex(save => dataMap.get(save).ref === ref)
+    const save = saved[index]
+
+    if (!save) return
+
+    dataMap.get(save).loaded = true
+    this.setState({ saved: saved.slice(0, index + 1) })
   }
 
   render() {

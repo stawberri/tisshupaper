@@ -53,6 +53,8 @@ class Image extends React.Component {
   }
 
   componentDidMount() {
+    if (this.props.imageRef) this.props.imageRef(this)
+
     this.preloaders.forEach(img =>
       img.addEventListener('load', this.preloaderLoaded)
     )
@@ -70,6 +72,8 @@ class Image extends React.Component {
     this.preloaders.forEach(img =>
       img.removeEventListener('load', this.preloaderLoaded)
     )
+
+    if (this.props.imageRef) this.props.imageRef(null)
   }
 
   async beginPreload(newPost) {
