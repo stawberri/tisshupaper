@@ -7,8 +7,6 @@ import resized from 'utils/resized'
 
 import Image from './image'
 
-const blurStrength = 'calc((5vw + 5vh) / 2)'
-
 const Wrapper = styled.div`
   position: relative;
   overflow: hidden;
@@ -16,8 +14,9 @@ const Wrapper = styled.div`
   height: 100%;
 `
 
+const blurStrength = 'calc((5vw + 5vh) / 2)'
 const BackgroundImage = styled(Image).attrs({ cover: true })`
-  position: fixed;
+  position: absolute;
   top: calc(-2 * ${blurStrength});
   left: calc(-2 * ${blurStrength});
   width: calc(4 * ${blurStrength} + 100vw);
@@ -38,7 +37,7 @@ const MainImage = styled(Image).attrs({ cover: true })`
 `
 
 const Meta = styled.p`
-  position: fixed;
+  position: absolute;
   bottom: 0;
 
   box-sizing: border-box;
@@ -128,7 +127,7 @@ class Splash extends React.Component {
       <Wrapper innerRef={this.wrapperRef}>
         {post && (
           <React.Fragment>
-            <BackgroundImage id={post.id} size={0} />
+            {false && <BackgroundImage id={post.id} size={0} />}
             <MainImage id={post.id} />
             <Meta>{generatePostTitle(post)}</Meta>
           </React.Fragment>
