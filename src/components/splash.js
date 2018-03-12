@@ -59,6 +59,8 @@ const Meta = styled.p`
   background: rgba(255, 255, 255, 0.69);
   white-space: nowrap;
   overflow: hidden;
+
+  backdrop-filter: blur(0.3rem);
 `
 
 class Splash extends React.Component {

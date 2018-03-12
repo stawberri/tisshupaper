@@ -17,14 +17,21 @@ const Wrapper = styled.div`
   overflow: hidden;
 `
 
+const scrollBg = keyframes`
+  to {
+    background-position: 0 4rem;
+  }
+`
+
 const Picture = styled.img`
   flex: none;
   object-fit: contain;
-`
 
-const scrollBg = keyframes`
-  to {
-    background-position: 0 64px;
+  &.loading {
+    background: 0 0 / 2rem 2rem;
+    animation: ${scrollBg} 1s linear infinite;
+
+    backdrop-filter: blur(0.5rem);
   }
 `
 
@@ -178,35 +185,32 @@ class Image extends React.Component {
     const style = this.getSize()
     const target = this.getTarget()
 
+    let pictureClass
     let src = transparent
     if (post) {
       if (target >= 2 && loaded[2]) src = danbooru.url(file_url)
       else if (target >= 1 && loaded[1]) src = danbooru.url(large_file_url)
       else if (loaded[0]) src = danbooru.url(preview_file_url)
       else {
+        pictureClass = 'loading'
+
         const color = postColor(post)
-        const color1 = color.alpha(0.28).css()
-        const color2 = color.alpha(0.16).css()
-        Object.assign(style, {
-          background: `
-            repeating-linear-gradient(
-              45deg,
-              ${color1} 25%,
-              ${color2} 25%,
-              ${color2} 50%,
-              ${color1} 50%,
-              ${color1} 75%,
-              ${color2} 75%
-            ) 0 0 / 64px 64px
-            `,
-          animation: `${scrollBg} 1s linear infinite`
-        })
+        const color1 = color.alpha(0.69).css()
+        const color2 = color.alpha(0.28).css()
+        style.backgroundImage = `
+        repeating-linear-gradient(
+          45deg,
+          ${color1} 25%, ${color2} 25%,
+          ${color2} 50%, ${color1} 50%,
+          ${color1} 75%, ${color2} 75%
+        )
+        `
       }
     }
 
     return (
       <Wrapper className={className} innerRef={this.wrapperRef}>
-        <Picture src={src} style={style} />
+        <Picture src={src} style={style} className={pictureClass} />
       </Wrapper>
     )
   }
