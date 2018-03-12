@@ -114,9 +114,8 @@ class Image extends React.Component {
     }
   }
 
-  setSize = async (width, height) => {
+  async setSize(width, height) {
     await new Promise(done => this.setState({ width, height }, done))
-
     if (width || height) this.beginPreload()
   }
 
