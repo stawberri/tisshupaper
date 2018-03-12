@@ -1,6 +1,6 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 import { resize } from 'utils/image'
 import { postSize, postColor } from 'utils/danbooru'
 import resized from 'utils/resized'
@@ -20,6 +20,12 @@ const Wrapper = styled.div`
 const Picture = styled.img`
   flex: none;
   object-fit: contain;
+`
+
+const scrollBg = keyframes`
+  to {
+    background-position: 0 64px;
+  }
 `
 
 class Image extends React.Component {
@@ -59,24 +65,36 @@ class Image extends React.Component {
 
   async beginPreload(newPost) {
     const { preloaders } = this
-    const { onLoadStart, post, danbooru } = this.props
+    const { post, danbooru } = this.props
+
+    if (!post) return
 
     const target = this.getTarget()
-    if (!post || (!newPost && this.state.loaded[target])) return
+    if (newPost) await new Promise(done => this.setState({ loaded: [] }, done))
+    else if (this.state.loaded[target]) return
 
-    if (onLoadStart) onLoadStart()
+    const { loaded } = this.state
+    const imgOk = loaded[2]
+    const largeOk = imgOk || loaded[1]
+    const previewOk = largeOk || loaded[0]
 
-    await new Promise(done => this.setState({ loaded: [] }, done))
+    if (!previewOk) {
+      preloaders[0].src = danbooru.url(post.preview_file_url)
+    }
 
-    preloaders[0].src = danbooru.url(post.preview_file_url)
-    if (target >= 1) preloaders[1].src = danbooru.url(post.large_file_url)
-    if (target >= 2) preloaders[2].src = danbooru.url(post.file_url)
+    if (!largeOk && target >= 1) {
+      preloaders[1].src = danbooru.url(post.large_file_url)
+    }
+
+    if (!imgOk && target >= 2) {
+      preloaders[2].src = danbooru.url(post.file_url)
+    }
   }
 
   preloaderLoaded = async event => {
     const target = this.getTarget()
     let { loaded } = this.state
-    const { onLoad, onLoadPreview } = this.props
+    const { post, onLoad, onLoadPreview } = this.props
     const { preloaders } = this
 
     const index = preloaders.findIndex(preloader => event.target === preloader)
@@ -88,8 +106,8 @@ class Image extends React.Component {
       await new Promise(done => this.setState({ loaded }, done))
     }
 
-    if (!index && onLoadPreview) onLoadPreview()
-    if (target === index && onLoad) onLoad()
+    if (!index && onLoadPreview) onLoadPreview(post.id)
+    if (target === index && onLoad) onLoad(post.id)
   }
 
   wrapperRef = ref => {
@@ -165,7 +183,25 @@ class Image extends React.Component {
       if (target >= 2 && loaded[2]) src = danbooru.url(file_url)
       else if (target >= 1 && loaded[1]) src = danbooru.url(large_file_url)
       else if (loaded[0]) src = danbooru.url(preview_file_url)
-      else style.background = postColor(post)
+      else {
+        const color = postColor(post)
+        const color1 = color.alpha(0.28).css()
+        const color2 = color.alpha(0.16).css()
+        Object.assign(style, {
+          background: `
+            repeating-linear-gradient(
+              45deg,
+              ${color1} 25%,
+              ${color2} 25%,
+              ${color2} 50%,
+              ${color1} 50%,
+              ${color1} 75%,
+              ${color2} 75%
+            ) 0 0 / 64px 64px
+            `,
+          animation: `${scrollBg} 1s linear infinite`
+        })
+      }
     }
 
     return (

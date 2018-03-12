@@ -79,5 +79,6 @@ export function postColor(post) {
     } catch (error) {}
   }
 
-  return chroma.average(colors).hex()
+  if (colors.length) return chroma.average(colors)
+  else return chroma(parseInt(post.md5, 16) % 0xffffff)
 }
