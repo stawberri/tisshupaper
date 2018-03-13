@@ -51,11 +51,14 @@ export default class ImageFader extends React.Component {
   }
 
   childEnter() {
-    return { opacity: 0 }
+    return { opacity: 0, brightness: 2 }
   }
 
   childLeave() {
-    return { opacity: spring(0) }
+    return {
+      opacity: spring(0),
+      brightness: spring(3, { stiffness: 250, damping: 40 })
+    }
   }
 
   render() {
@@ -64,7 +67,7 @@ export default class ImageFader extends React.Component {
     const styles = images.map(({ key, element, loaded }) => ({
       key,
       data: { element, loaded },
-      style: { opacity: spring(+!!loaded) }
+      style: { opacity: spring(+!!loaded), brightness: spring(1 + !loaded) }
     }))
 
     return (
@@ -79,7 +82,10 @@ export default class ImageFader extends React.Component {
               React.cloneElement(data.element, {
                 key,
                 onLoad: this.childLoaded,
-                style
+                style: {
+                  opacity: style.opacity,
+                  filter: `brightness(${style.brightness})`
+                }
               })
             )}
           </React.Fragment>
