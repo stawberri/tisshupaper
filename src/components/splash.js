@@ -36,23 +36,6 @@ const MainImage = styled(Image).attrs({ cover: true })`
   left: 0;
   width: 100%;
   height: 100%;
-
-  transition: opacity 0.5s, filter 0.5s;
-
-  &.-loading,
-  &.-enter {
-    opacity: 0;
-    filter: brightness(2);
-  }
-
-  &.-exit {
-    transition: opacity 0.5s, filter 0.2s;
-
-    &.-exit-active {
-      opacity: 0;
-      filter: brightness(5);
-    }
-  }
 `
 
 const Meta = styled.p`
