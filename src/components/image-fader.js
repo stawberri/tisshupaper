@@ -37,7 +37,7 @@ export default class ImageFader extends React.Component {
       key = save.key
       data = dataMap.get(save)
     } else if (child) {
-      if (save) saved.unshift(save)
+      if (save && dataMap.get(save).loaded) saved.unshift(save)
       key = generateKey()
       data = {}
     }
@@ -100,13 +100,27 @@ export default class ImageFader extends React.Component {
       onExited
     }
 
+    const items = saved.map((save, index) => {
+      const data = dataMap.get(save)
+      const { loaded } = data
+
+      if (!loaded) {
+        const className = save.props.className || ''
+        save = React.cloneElement(save, {
+          className: `${className} ${classNames}-loading`.trim()
+        })
+      }
+
+      return (
+        <CSSTransition key={save.key} {...transitionProps}>
+          {save}
+        </CSSTransition>
+      )
+    })
+
     return (
       <TransitionGroup component={React.Fragment} {...props}>
-        {saved.map(save => (
-          <CSSTransition key={`${save.key} | transition`} {...transitionProps}>
-            {save}
-          </CSSTransition>
-        ))}
+        {items}
       </TransitionGroup>
     )
   }
