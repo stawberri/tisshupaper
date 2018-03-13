@@ -186,10 +186,10 @@ class Image extends React.Component {
 
   render() {
     const { loaded } = this.state
-    const { className, post, danbooru } = this.props
+    const { className, post, danbooru, style: styleProp } = this.props
     const { preview_file_url, large_file_url, file_url } = post || {}
 
-    const style = this.getSize()
+    const style = { ...styleProp, ...this.getSize() }
     const target = this.getTarget()
 
     let isLoading = false

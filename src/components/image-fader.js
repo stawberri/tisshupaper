@@ -1,120 +1,90 @@
 import React from 'react'
 import asap from 'asap'
 
-import { TransitionGroup, CSSTransition } from 'react-transition-group'
-
-const dataMap = new WeakMap()
+import { spring, TransitionMotion } from 'react-motion'
 
 export default class ImageFader extends React.Component {
   constructor(props) {
     super(props)
 
     this.state = {
-      saved: []
+      images: []
     }
   }
 
   componentDidMount() {
-    this.saveChildren()
+    this.saveChild()
   }
 
   componentWillReceiveProps(props) {
-    if (props.children !== this.props.children) asap(() => this.saveChildren())
+    if (props.children !== this.props.children) asap(() => this.saveChild())
   }
 
-  saveChildren() {
-    const saved = this.state.saved.slice()
-    const save = saved.shift()
-    const child = React.Children.only(this.props.children)
+  saveChild() {
+    const images = this.state.images.slice()
+    const currentImage = images.shift() || {}
+    const element = React.Children.only(this.props.children)
 
-    let key
-    let data
-    if (save && save.props.id === child.props.id) {
-      key = save.key
-      data = dataMap.get(save)
-    } else if (child) {
-      if (save && dataMap.get(save).loaded) saved.unshift(save)
-
-      key = generateKey()
-      data = {}
+    let image
+    const { id } = element.props
+    if (element === currentImage.element) return
+    else if (id === currentImage.id) image = currentImage
+    else {
+      if (currentImage.loaded) images.unshift(currentImage)
+      image = { key: generateKey(), id }
     }
 
-    const clonedChild = React.cloneElement(child, {
-      key: key,
-      onLoad: this.childLoaded
-    })
-
-    dataMap.set(clonedChild, data)
-    saved.unshift(clonedChild)
-
-    this.setState({ saved })
+    images.unshift({ ...image, element })
+    this.setState({ images })
   }
 
   childLoaded = async event => {
-    const save = this.state.saved[0]
-    if (!save || save.props.id !== event.id) return
-    const data = dataMap.get(save)
+    let image = this.state.images[0]
+    if (!image || image.id !== event.id) return
 
-    if (!data.loaded) {
-      data.loaded = true
-      await new Promise(done => this.setState({ saved: [save] }, done))
+    if (!image.loaded) {
+      const update = { ...image, loaded: true }
+      await new Promise(done => this.setState({ images: [update] }, done))
     }
 
     if (this.props.onLoad) this.props.onLoad(event)
   }
 
+  childEnter() {
+    return { opacity: 0 }
+  }
+
+  childLeave() {
+    return { opacity: spring(0) }
+  }
+
   render() {
-    const { saved } = this.state
+    const { images } = this.state
 
-    const {
-      children,
-      onLoad,
-      classNames,
-      timeout,
-      addEndListener,
-      onEnter,
-      onEntering,
-      onEntered,
-      onExit,
-      onExiting,
-      onExited,
-      ...props
-    } = this.props
-
-    const transitionProps = {
-      classNames,
-      timeout,
-      addEndListener,
-      onEnter,
-      onEntering,
-      onEntered,
-      onExit,
-      onExiting,
-      onExited
-    }
-
-    const items = saved.map((save, index) => {
-      const data = dataMap.get(save)
-      const { loaded } = data
-
-      if (!loaded) {
-        const className = save.props.className || ''
-        save = React.cloneElement(save, {
-          className: `${className} ${classNames}-loading`.trim()
-        })
-      }
-
-      return (
-        <CSSTransition key={save.key} {...transitionProps}>
-          {save}
-        </CSSTransition>
-      )
-    })
+    const styles = images.map(({ key, element, loaded }) => ({
+      key,
+      data: { element, loaded },
+      style: { opacity: spring(+!!loaded) }
+    }))
 
     return (
-      <TransitionGroup component={React.Fragment} {...props}>
-        {items}
-      </TransitionGroup>
+      <TransitionMotion
+        styles={styles}
+        willEnter={this.childEnter}
+        willLeave={this.childLeave}
+      >
+        {styles => (
+          <React.Fragment>
+            {styles.map(({ key, data, style }) =>
+              React.cloneElement(data.element, {
+                key,
+                onLoad: this.childLoaded,
+                style
+              })
+            )}
+          </React.Fragment>
+        )}
+      </TransitionMotion>
     )
   }
 }
