@@ -92,6 +92,8 @@ class Splash extends React.Component {
   }
 
   postLoad = async ({ id }) => {
+    if (this.state.currentId === id) return
+
     await new Promise(done =>
       this.setState({ currentId: id, changed: true }, done)
     )
