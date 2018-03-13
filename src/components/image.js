@@ -66,7 +66,7 @@ class Image extends React.Component {
     let oldProps = this.props
     const { post, size } = props
 
-    if (oldProps.post !== post) asap(() => this.beginPreload(true))
+    if (oldProps.post.id !== post.id) asap(() => this.beginPreload(true))
     else if (oldProps.size !== size) asap(() => this.beginPreload())
   }
 
