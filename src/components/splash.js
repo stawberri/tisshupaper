@@ -8,6 +8,7 @@ import resized from 'utils/resized'
 import Image from './image'
 import ImageFader from './image-fader'
 import { spring, Motion } from 'react-motion'
+import Tisshupaper from './tisshupaper'
 
 const Wrapper = styled.div`
   position: relative;
@@ -168,6 +169,7 @@ class Splash extends React.Component {
             )}
           </React.Fragment>
         )}
+        {!current && <Tisshupaper />}
       </Wrapper>
     )
   }
