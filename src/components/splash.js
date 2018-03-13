@@ -46,11 +46,11 @@ const MainImage = styled(Image).attrs({ cover: true })`
 
   &.-exit {
     transition: opacity 0.5s, filter 0.2s;
-  }
 
-  &.-exit-active {
-    opacity: 0;
-    filter: brightness(5);
+    &.-exit-active {
+      opacity: 0;
+      filter: brightness(5);
+    }
   }
 `
 
@@ -86,7 +86,8 @@ class Splash extends React.Component {
 
     this.state = {
       width: 0,
-      height: 0
+      height: 0,
+      currentId: 0
     }
   }
 
@@ -103,6 +104,10 @@ class Splash extends React.Component {
 
     let { clientWidth: width, clientHeight: height } = ref
     this.updateImageSize(width, height)
+  }
+
+  postLoad = ({ id }) => {
+    this.setState({ currentId: id })
   }
 
   pickPost(props = this.props) {
@@ -139,17 +144,21 @@ class Splash extends React.Component {
   }
 
   render() {
+    const { currentId } = this.state
+    const { data } = this.props
+
     const post = this.pickPost()
+    const current = data[currentId]
 
     return (
       <Wrapper innerRef={this.wrapperRef}>
         {post && (
           <React.Fragment>
-            {false && <BackgroundImage id={post.id} size={0} />}
-            <ImageFader classNames="" timeout={500}>
+            {false && <BackgroundImage id={current.id} size={0} />}
+            <ImageFader classNames="" timeout={500} onLoad={this.postLoad}>
               <MainImage id={post.id} />
             </ImageFader>
-            <Meta>{generatePostTitle(post)}</Meta>
+            {current && <Meta>{generatePostTitle(current)}</Meta>}
           </React.Fragment>
         )}
       </Wrapper>

@@ -103,20 +103,25 @@ class Image extends React.Component {
   preloaderLoaded = async event => {
     const target = this.getTarget()
     let { loaded } = this.state
-    const { onLoad, onLoadPreview } = this.props
+    const { onLoad, post } = this.props
     const { preloaders } = this
 
-    const index = preloaders.findIndex(preloader => event.target === preloader)
-    if (!~index) return
+    const size = preloaders.findIndex(preloader => event.target === preloader)
+    if (!~size) return
 
-    if (!loaded[index]) {
+    if (!loaded[size]) {
       loaded = loaded.slice()
-      loaded[index] = true
+      loaded[size] = true
       await new Promise(done => this.setState({ loaded }, done))
     }
 
-    if (!index && onLoadPreview) onLoadPreview({ ref: this })
-    if (target === index && onLoad) onLoad({ ref: this })
+    if (onLoad)
+      onLoad({
+        ref: this,
+        id: post.id,
+        size,
+        target
+      })
   }
 
   wrapperRef = ref => {

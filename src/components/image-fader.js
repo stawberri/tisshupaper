@@ -41,7 +41,7 @@ export default class ImageFader extends React.Component {
 
     const clonedChild = React.cloneElement(child, {
       key: key,
-      onLoadPreview: this.childLoaded
+      onLoad: this.childLoaded
     })
 
     dataMap.set(clonedChild, data)
@@ -50,12 +50,17 @@ export default class ImageFader extends React.Component {
     this.setState({ saved })
   }
 
-  childLoaded = ({ ref }) => {
+  childLoaded = async event => {
     const save = this.state.saved[0]
-    if (!save || save.props.id !== ref.props.id) return
+    if (!save || save.props.id !== event.id) return
+    const data = dataMap.get(save)
 
-    dataMap.get(save).loaded = true
-    this.setState({ saved: [save] })
+    if (!data.loaded) {
+      data.loaded = true
+      await new Promise(done => this.setState({ saved: [save] }, done))
+    }
+
+    if (this.props.onLoad) this.props.onLoad(event)
   }
 
   render() {
@@ -63,6 +68,7 @@ export default class ImageFader extends React.Component {
 
     const {
       children,
+      onLoad,
       classNames,
       timeout,
       addEndListener,
