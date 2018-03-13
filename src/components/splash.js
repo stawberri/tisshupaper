@@ -7,6 +7,7 @@ import resized from 'utils/resized'
 
 import Image from './image'
 import ImageFader from './image-fader'
+import { spring, Motion } from 'react-motion'
 
 const Wrapper = styled.div`
   position: relative;
@@ -87,7 +88,8 @@ class Splash extends React.Component {
     this.state = {
       width: 0,
       height: 0,
-      currentId: 0
+      currentId: 0,
+      changed: false
     }
   }
 
@@ -106,8 +108,12 @@ class Splash extends React.Component {
     this.updateImageSize(width, height)
   }
 
-  postLoad = ({ id }) => {
-    this.setState({ currentId: id })
+  postLoad = async ({ id }) => {
+    await new Promise(done =>
+      this.setState({ currentId: id, changed: true }, done)
+    )
+
+    this.setState({ changed: false })
   }
 
   pickPost(props = this.props) {
@@ -144,11 +150,15 @@ class Splash extends React.Component {
   }
 
   render() {
-    const { currentId } = this.state
+    const { currentId, changed } = this.state
     const { data } = this.props
 
     const post = this.pickPost()
     const current = data[currentId]
+
+    const metaStyle = {
+      translateX: changed ? -100 : spring(0)
+    }
 
     return (
       <Wrapper innerRef={this.wrapperRef}>
@@ -158,7 +168,19 @@ class Splash extends React.Component {
             <ImageFader classNames="" timeout={500} onLoad={this.postLoad}>
               <MainImage id={post.id} />
             </ImageFader>
-            {current && <Meta>{generatePostTitle(current)}</Meta>}
+            {current && (
+              <Motion style={metaStyle}>
+                {({ translateX }) => (
+                  <Meta
+                    style={{
+                      transform: `translateX(${translateX}%)`
+                    }}
+                  >
+                    {generatePostTitle(current)}
+                  </Meta>
+                )}
+              </Motion>
+            )}
           </React.Fragment>
         )}
       </Wrapper>
