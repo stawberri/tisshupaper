@@ -17,6 +17,8 @@ const Wrapper = styled.div`
   justify-content: center;
   align-items: center;
 
+  transform: translate3d(0, 0, 0);
+
   overflow: hidden;
 `
 
