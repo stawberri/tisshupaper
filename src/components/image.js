@@ -6,6 +6,9 @@ import { postSize, postColor } from 'utils/danbooru'
 import resized from 'utils/resized'
 import transparent from 'img/transparent.gif'
 import asap from 'asap'
+import uniqueKey from 'utils/unique-key'
+
+import { spring, TransitionMotion } from 'react-motion'
 
 const Wrapper = styled.div`
   position: relative;
@@ -24,17 +27,15 @@ const scrollBg = keyframes`
 `
 
 const Picture = styled.img`
+  position: absolute;
   flex: none;
-  object-fit: contain;
 
-  ${({ isLoading }) =>
-    isLoading &&
+  ${({ postSize }) =>
+    ~postSize ||
     css`
       background: 0 0 / 2rem 2rem;
       animation: ${scrollBg} 1s linear infinite;
-
-      backdrop-filter: blur(0.5rem);
-    `};
+    `}};
 `
 
 class Image extends React.Component {
@@ -48,7 +49,8 @@ class Image extends React.Component {
     this.state = {
       loaded: [],
       width: 0,
-      height: 0
+      height: 0,
+      key: uniqueKey()
     }
   }
 
@@ -79,8 +81,11 @@ class Image extends React.Component {
     if (!post) return
 
     const target = this.getTarget()
-    if (newPost) await new Promise(done => this.setState({ loaded: [] }, done))
-    else if (this.state.loaded[target]) return
+    if (newPost) {
+      await new Promise(done =>
+        this.setState({ loaded: [], key: uniqueKey() }, done)
+      )
+    } else if (this.state.loaded[target]) return
 
     const { loaded } = this.state
     const imgOk = loaded[2]
@@ -184,27 +189,23 @@ class Image extends React.Component {
     else return postSize(this.getSize(this.props))
   }
 
-  render() {
-    const { loaded } = this.state
-    const { className, post, danbooru, style: styleProp } = this.props
-    const { preview_file_url, large_file_url, file_url } = post || {}
+  transitionLeave() {
+    return { opacity: spring(0, { stiffness: 200, damping: 30 }) }
+  }
 
-    const style = { ...styleProp, ...this.getSize() }
-    const target = this.getTarget()
+  renderTransition = styles => {
+    const children = styles.reverse().map(({ key, data, style }) => {
+      const { post, src, size } = data
+      const { opacity } = style
+      const sizes = this.getSize()
 
-    let isLoading = false
-    let src = transparent
-    if (post) {
-      if (target >= 2 && loaded[2]) src = danbooru.url(file_url)
-      else if (target >= 1 && loaded[1]) src = danbooru.url(large_file_url)
-      else if (loaded[0]) src = danbooru.url(preview_file_url)
-      else {
-        isLoading = true
+      const css = { ...sizes, opacity }
 
+      if (size === -1) {
         const color = postColor(post)
-        const color1 = color.alpha(0.69).css()
-        const color2 = color.alpha(0.28).css()
-        style.backgroundImage = `
+        const color1 = color.brighten(1)
+        const color2 = color.brighten(1.2)
+        css.backgroundImage = `
         repeating-linear-gradient(
           45deg,
           ${color1} 25%, ${color2} 25%,
@@ -213,11 +214,52 @@ class Image extends React.Component {
         )
         `
       }
+
+      return <Picture key={key} src={src} style={css} postSize={size} />
+    })
+
+    return <React.Fragment>{children}</React.Fragment>
+  }
+
+  render() {
+    const { loaded, key } = this.state
+    const { className, post, danbooru, style: css } = this.props
+    const { preview_file_url, large_file_url, file_url } = post || {}
+
+    const target = this.getTarget()
+
+    const styles = []
+    if (post) {
+      const style = {
+        data: { post },
+        style: { opacity: spring(1) }
+      }
+
+      if (target >= 2 && loaded[2]) {
+        style.data.size = 2
+        style.data.src = danbooru.url(file_url)
+      } else if (target >= 1 && loaded[1]) {
+        style.data.size = 1
+        style.data.src = danbooru.url(large_file_url)
+      } else if (loaded[0]) {
+        style.data.size = 0
+        style.data.src = danbooru.url(preview_file_url)
+      } else {
+        style.data.size = -1
+        style.data.src = transparent
+      }
+
+      style.key = `${key} | ${style.data.size}`
+      styles.push(style)
     }
 
     return (
-      <Wrapper className={className} innerRef={this.wrapperRef}>
-        <Picture src={src} style={style} isLoading={isLoading} />
+      <Wrapper className={className} style={css} innerRef={this.wrapperRef}>
+        {post && (
+          <TransitionMotion styles={styles} willLeave={this.transitionLeave}>
+            {this.renderTransition}
+          </TransitionMotion>
+        )}
       </Wrapper>
     )
   }

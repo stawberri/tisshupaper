@@ -1,5 +1,6 @@
 import React from 'react'
 import asap from 'asap'
+import uniqueKey from 'utils/unique-key'
 
 import { spring, TransitionMotion } from 'react-motion'
 
@@ -31,7 +32,7 @@ export default class ImageFader extends React.Component {
     else if (id === currentImage.id) image = currentImage
     else {
       if (currentImage.loaded) images.unshift(currentImage)
-      image = { key: generateKey(), id }
+      image = { key: uniqueKey(), id }
     }
 
     images.unshift({ ...image, element })
@@ -54,11 +55,28 @@ export default class ImageFader extends React.Component {
     return { opacity: 0, brightness: 2 }
   }
 
-  childLeave() {
-    return {
-      opacity: spring(0),
-      brightness: spring(3, { stiffness: 250, damping: 40 })
-    }
+  childLeave({ data: { loaded } }) {
+    return loaded
+      ? {
+          opacity: spring(0),
+          brightness: spring(3, { stiffness: 250, damping: 40 })
+        }
+      : null
+  }
+
+  renderTransition = styles => {
+    const children = styles.map(({ key, data, style }) =>
+      React.cloneElement(data.element, {
+        key,
+        onLoad: this.childLoaded,
+        style: {
+          opacity: style.opacity,
+          filter: `brightness(${style.brightness})`
+        }
+      })
+    )
+
+    return <React.Fragment>{children}</React.Fragment>
   }
 
   render() {
@@ -76,33 +94,8 @@ export default class ImageFader extends React.Component {
         willEnter={this.childEnter}
         willLeave={this.childLeave}
       >
-        {styles => (
-          <React.Fragment>
-            {styles.map(({ key, data, style }) =>
-              React.cloneElement(data.element, {
-                key,
-                onLoad: this.childLoaded,
-                style: {
-                  opacity: style.opacity,
-                  filter: `brightness(${style.brightness})`
-                }
-              })
-            )}
-          </React.Fragment>
-        )}
+        {this.renderTransition}
       </TransitionMotion>
     )
   }
-}
-
-let lastKeyTime
-let lastKeyNumber
-function generateKey() {
-  const now = Date.now()
-  if (now !== lastKeyTime) {
-    lastKeyTime = now
-    lastKeyNumber = 0
-  } else lastKeyNumber++
-
-  return `image-fader key | ${lastKeyTime} | ${lastKeyNumber}`
 }
