@@ -193,13 +193,15 @@ class Image extends React.Component {
     return { opacity: spring(0, { stiffness: 200, damping: 30 }) }
   }
 
-  renderTransition = sizes => styles => {
+  renderTransition = (sizes, { width }) => styles => {
     const children = styles.reverse().map(({ key, data, style }) => {
       const { post, src, size } = data
       const { opacity } = style
 
       const css = { ...sizes, opacity }
-      if (opacity !== 1) css.transform = 'translateZ(0)'
+      if (opacity !== 1 || sizes.width !== width) {
+        css.transform = 'translateZ(0)'
+      }
 
       if (size === -1) {
         const color = postColor(post)
@@ -234,7 +236,7 @@ class Image extends React.Component {
 
     const { preview_file_url, large_file_url, file_url } = post || {}
 
-    const { width, height } = this.getSize()
+    const size = this.getSize()
     const target = this.getTarget()
 
     const styles = []
@@ -269,10 +271,10 @@ class Image extends React.Component {
             style={
               springOpts
                 ? {
-                    width: spring(width, springOpts),
-                    height: spring(height, springOpts)
+                    width: spring(size.width, springOpts),
+                    height: spring(size.height, springOpts)
                   }
-                : { width, height }
+                : { width: size.width, height: size.height }
             }
           >
             {style => (
@@ -280,7 +282,7 @@ class Image extends React.Component {
                 styles={styles}
                 willLeave={this.transitionLeave}
               >
-                {this.renderTransition(style)}
+                {this.renderTransition(style, size)}
               </TransitionMotion>
             )}
           </Motion>

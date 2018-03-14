@@ -156,25 +156,26 @@ class Splash extends React.Component {
               <Wrapper innerRef={this.wrapperRef}>
                 {current && <BackgroundImage id={current.id} size={0} />}
                 <Motion
-                  style={
-                    match
+                  style={{
+                    i: spring(+!match),
+                    ...(match
                       ? { top: spring(5), height: spring(15) }
-                      : { top: spring(0), height: spring(0) }
-                  }
+                      : { top: spring(0), height: spring(0) })
+                  }}
                 >
-                  {({ top, height }) => (
+                  {({ i, top, height }) => (
                     <Link to={match ? '/' : '/home'}>
                       <ImageFader onLoad={this.postLoad}>
                         <MainImage
                           id={post.id}
-                          spring={
-                            ((top !== 5 && match) || (top !== 0 && !match)) &&
-                            {}
-                          }
+                          spring={i !== +!match && {}}
                           cover={!match}
                           style={{
                             top: `${top}rem`,
-                            height: `calc(100% - ${height}rem)`
+                            height: `calc(100% - ${height}rem)`,
+                            ...(i !== +!match
+                              ? { transform: 'translateZ(0)' }
+                              : {})
                           }}
                         />
                       </ImageFader>
