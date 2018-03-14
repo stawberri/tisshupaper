@@ -73,21 +73,8 @@ class Splash extends React.Component {
       width: 0,
       height: 0,
       currentId: 0,
-      changed: false,
-      now: 0,
-      timeOffset: Math.floor(Math.random() * 86400000)
+      changed: false
     }
-  }
-
-  componentDidMount() {
-    this.timeInterval = setInterval(
-      () => this.setState({ now: Date.now() }),
-      60000
-    )
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timeInterval)
   }
 
   updateImageSize(width, height) {
@@ -116,40 +103,41 @@ class Splash extends React.Component {
   }
 
   pickPost(props = this.props) {
-    const { width, height, now, timeOffset } = this.state
+    const { width, height } = this.state
     const { data, posts } = props
     if (!posts.length) return
 
     const size = { width, height }
 
     const maxScore = findMaxScore(posts, data)
-    const sortedPosts = posts
-      .filter(id => isValidImage(data[id]))
-      .map((id, index) => {
-        let score = 0
-        const post = data[id]
-        const postSize = { width: post.image_width, height: post.image_height }
-        const resized = resize(postSize, size, true)
 
-        const indexScore = 1 - index / posts.length
-        const scoreScore = post.score / maxScore
-        const aspectRatioScore = coverage(postSize, size)
-        const croppedOffScore = coverage(size, resized)
+    let bestPost
+    let bestScore = -Infinity
 
-        score += indexScore
-        score += scoreScore
-        score += aspectRatioScore * 6
-        score += croppedOffScore * 2
-        if (contained(size, postSize)) score += croppedOffScore * 4
+    posts.filter(id => isValidImage(data[id])).forEach((id, index) => {
+      let score = 0
+      const post = data[id]
+      const postSize = { width: post.image_width, height: post.image_height }
+      const resized = resize(postSize, size, true)
 
-        return [score, post]
-      })
-      .sort((a, b) => b[0] - a[0])
+      const indexScore = 1 - index / posts.length
+      const scoreScore = post.score / maxScore
+      const aspectRatioScore = coverage(postSize, size)
+      const croppedOffScore = coverage(size, resized)
 
-    const select =
-      Math.floor((now + timeOffset) / 60000) % Math.min(15, posts.length)
+      score += indexScore
+      score += scoreScore
+      score += aspectRatioScore * 6
+      score += croppedOffScore * 2
+      if (contained(size, postSize)) score += croppedOffScore * 4
 
-    return sortedPosts[select][1]
+      if (score > bestScore) {
+        bestPost = post
+        bestScore = score
+      }
+    })
+
+    return bestPost
   }
 
   render() {
