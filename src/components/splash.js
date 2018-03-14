@@ -73,8 +73,21 @@ class Splash extends React.Component {
       width: 0,
       height: 0,
       currentId: 0,
-      changed: false
+      changed: false,
+      now: 0,
+      timeOffset: Math.floor(Math.random() * 86400000)
     }
+  }
+
+  componentDidMount() {
+    this.timeInterval = setInterval(
+      () => this.setState({ now: Date.now() }),
+      60000
+    )
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.timeInterval)
   }
 
   updateImageSize(width, height) {
@@ -103,36 +116,39 @@ class Splash extends React.Component {
   }
 
   pickPost(props = this.props) {
-    const { width, height } = this.state
+    const { width, height, now, timeOffset } = this.state
     const { data, posts } = props
     if (!posts.length) return
 
-    let pickedPost = null
-    let pickedScore = -Infinity
-
     const size = { width, height }
 
-    posts.forEach((id, index) => {
-      let score = 0
-      const post = data[id]
-      const postSize = { width: post.image_width, height: post.image_height }
-      const resized = resize(postSize, size, true)
+    const maxScore = findMaxScore(posts, data)
+    const sortedPosts = posts
+      .map((id, index) => {
+        let score = 0
+        const post = data[id]
+        const postSize = { width: post.image_width, height: post.image_height }
+        const resized = resize(postSize, size, true)
 
-      const indexScore = 1 - index / 200
-      const rawCoverageScore = coverage(postSize, size)
-      const missingScore = coverage(size, resized)
+        const indexScore = 1 - index / posts.length
+        const scoreScore = post.score / maxScore
+        const aspectRatioScore = coverage(postSize, size)
+        const croppedOffScore = coverage(size, resized)
 
-      score += indexScore * 2
-      score += rawCoverageScore
-      score += missingScore * (1 + !contained(postSize, size))
+        score += indexScore
+        score += scoreScore
+        score += aspectRatioScore
+        score += croppedOffScore
+        if (contained(size, postSize)) score += croppedOffScore
 
-      if (score > pickedScore) {
-        pickedScore = score
-        pickedPost = post
-      }
-    })
+        return [score, post]
+      })
+      .sort((a, b) => b[0] - a[0])
 
-    return pickedPost
+    const select =
+      Math.floor((now + timeOffset) / 60000) % Math.min(15, posts.length)
+
+    return sortedPosts[select][1]
   }
 
   render() {
@@ -182,3 +198,18 @@ export default connect(
     danbooru
   })
 )(Splash)
+
+const maxScores = new WeakMap()
+function findMaxScore(posts, data) {
+  if (!maxScores.has(posts)) {
+    maxScores.set(
+      posts,
+      posts.reduce(
+        (score, post) => Math.max(score, data[post].score),
+        -Infinity
+      )
+    )
+  }
+
+  return maxScores.get(posts)
+}
