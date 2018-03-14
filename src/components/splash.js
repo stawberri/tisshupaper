@@ -204,12 +204,8 @@ function findMaxScore(posts, data) {
   if (!maxScores.has(posts)) {
     maxScores.set(
       posts,
-      posts.reduce(
-        (score, post) => Math.max(score, data[post].score),
-        -Infinity
-      )
+      posts.reduce((max, id) => Math.max(max, data[id].score), -Infinity)
     )
   }
-
   return maxScores.get(posts)
 }
