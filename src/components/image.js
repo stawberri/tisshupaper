@@ -8,7 +8,7 @@ import transparent from 'img/transparent.gif'
 import asap from 'asap'
 import uniqueKey from 'utils/unique-key'
 
-import { spring, TransitionMotion } from 'react-motion'
+import { spring, Motion, TransitionMotion } from 'react-motion'
 
 const Wrapper = styled.div`
   position: relative;
@@ -193,11 +193,10 @@ class Image extends React.Component {
     return { opacity: spring(0, { stiffness: 200, damping: 30 }) }
   }
 
-  renderTransition = styles => {
+  renderTransition = sizes => styles => {
     const children = styles.reverse().map(({ key, data, style }) => {
       const { post, src, size } = data
       const { opacity } = style
-      const sizes = this.getSize()
 
       const css = { ...sizes, opacity }
       if (opacity !== 1) css.transform = 'translateZ(0)'
@@ -224,9 +223,18 @@ class Image extends React.Component {
 
   render() {
     const { loaded, key } = this.state
-    const { className, post, danbooru, style: css } = this.props
+
+    const {
+      className,
+      post,
+      danbooru,
+      style: css,
+      spring: springOpts
+    } = this.props
+
     const { preview_file_url, large_file_url, file_url } = post || {}
 
+    const { width, height } = this.getSize()
     const target = this.getTarget()
 
     const styles = []
@@ -257,9 +265,25 @@ class Image extends React.Component {
     return (
       <Wrapper className={className} style={css} innerRef={this.wrapperRef}>
         {post && (
-          <TransitionMotion styles={styles} willLeave={this.transitionLeave}>
-            {this.renderTransition}
-          </TransitionMotion>
+          <Motion
+            style={
+              springOpts
+                ? {
+                    width: spring(width, springOpts),
+                    height: spring(height, springOpts)
+                  }
+                : { width, height }
+            }
+          >
+            {style => (
+              <TransitionMotion
+                styles={styles}
+                willLeave={this.transitionLeave}
+              >
+                {this.renderTransition(style)}
+              </TransitionMotion>
+            )}
+          </Motion>
         )}
       </Wrapper>
     )

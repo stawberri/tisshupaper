@@ -167,6 +167,10 @@ class Splash extends React.Component {
                       <ImageFader onLoad={this.postLoad}>
                         <MainImage
                           id={post.id}
+                          spring={
+                            ((top !== 5 && match) || (top !== 0 && !match)) &&
+                            {}
+                          }
                           cover={!match}
                           style={{
                             top: `${top}rem`,
