@@ -148,6 +148,7 @@ class Splash extends React.Component {
 
     return (
       <Wrapper innerRef={this.wrapperRef}>
+        {!current && <Tisshupaper />}
         {post && (
           <React.Fragment>
             {false && <BackgroundImage id={current.id} size={0} />}
@@ -169,7 +170,6 @@ class Splash extends React.Component {
             )}
           </React.Fragment>
         )}
-        {!current && <Tisshupaper />}
       </Wrapper>
     )
   }
