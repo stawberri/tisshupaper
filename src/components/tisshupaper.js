@@ -61,7 +61,10 @@ export class TisshupaperScreen extends React.Component {
     if (!opacity) return null
 
     const style = { opacity }
-    if (opacity < 1) style.pointerEvents = 'none'
+    if (opacity < 1) {
+      style.pointerEvents = 'none'
+      style.transform = 'translateZ(0)'
+    }
 
     return <Screen style={style} />
   }

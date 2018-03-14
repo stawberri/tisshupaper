@@ -200,7 +200,7 @@ class Image extends React.Component {
       const sizes = this.getSize()
 
       const css = { ...sizes, opacity }
-      if (opacity !== 1) css.transform = 'translate3d(0, 0, 0)'
+      if (opacity !== 1) css.transform = 'translateZ(0)'
 
       if (size === -1) {
         const color = postColor(post)

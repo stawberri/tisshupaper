@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
-import { connect } from 'react-redux'
+import connect from 'utils/connect'
 import { generatePostTitle, isValidImage } from 'utils/danbooru'
 import { resize, contained, coverage } from 'utils/image'
 import resized from 'utils/resized'
@@ -9,6 +9,7 @@ import Image from './image'
 import ImageFader from './image-fader'
 import { spring, Motion } from 'react-motion'
 import Tisshupaper from './tisshupaper'
+import { Route, Link } from 'react-router-dom'
 
 const Wrapper = styled.div`
   position: relative;
@@ -26,17 +27,15 @@ const BackgroundImage = styled(Image).attrs({ cover: true })`
   height: calc(4 * ${blurStrength} + 100vh);
 
   filter: blur(${blurStrength});
+  transform: translateZ(0);
 
   z-index: -1;
   pointer-events: none;
 `
 
-const MainImage = styled(Image).attrs({ cover: true })`
+const MainImage = styled(Image)`
   position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
-  height: 100%;
 `
 
 const Meta = styled.p`
@@ -147,31 +146,67 @@ class Splash extends React.Component {
     const post = this.pickPost()
     const current = data[currentId]
 
-    const metaStyle = {
-      translateX: changed ? -100 : spring(0)
-    }
-
     return (
-      <Wrapper innerRef={this.wrapperRef}>
+      <React.Fragment>
         {!current && <Tisshupaper />}
-        {post && (
-          <React.Fragment>
-            {false && <BackgroundImage id={current.id} size={0} />}
-            <ImageFader classNames="" timeout={500} onLoad={this.postLoad}>
-              <MainImage id={post.id} />
-            </ImageFader>
-            {current && (
-              <Motion style={metaStyle}>
-                {({ translateX }) => (
-                  <Meta style={{ transform: `translateX(${translateX}%)` }}>
-                    {generatePostTitle(current)}
-                  </Meta>
+
+        <Route path="/home">
+          {({ match }) =>
+            post ? (
+              <Wrapper innerRef={this.wrapperRef}>
+                {current && <BackgroundImage id={current.id} size={0} />}
+                <Motion
+                  style={
+                    match
+                      ? { top: spring(5), height: spring(15) }
+                      : { top: spring(0), height: spring(0) }
+                  }
+                >
+                  {({ top, height }) => (
+                    <Link to={match ? '/' : '/home'}>
+                      <ImageFader onLoad={this.postLoad}>
+                        <MainImage
+                          id={post.id}
+                          cover={!match}
+                          style={{
+                            top: `${top}rem`,
+                            height: `calc(100% - ${height}rem)`
+                          }}
+                        />
+                      </ImageFader>
+                    </Link>
+                  )}
+                </Motion>
+                {current && (
+                  <Motion
+                    style={
+                      match
+                        ? { translateX: spring(-100) }
+                        : { translateX: changed ? -100 : spring(0) }
+                    }
+                  >
+                    {({ translateX }) =>
+                      translateX > -100 && (
+                        <Meta
+                          style={
+                            translateX
+                              ? {
+                                  transform: `translateZ(0) translateX(${translateX}%)`
+                                }
+                              : null
+                          }
+                        >
+                          {generatePostTitle(current)}
+                        </Meta>
+                      )
+                    }
+                  </Motion>
                 )}
-              </Motion>
-            )}
-          </React.Fragment>
-        )}
-      </Wrapper>
+              </Wrapper>
+            ) : null
+          }
+        </Route>
+      </React.Fragment>
     )
   }
 }

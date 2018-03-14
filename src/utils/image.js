@@ -17,6 +17,8 @@ export function contained(a, b) {
 }
 
 export function coverage(a, b) {
+  if (b.width === 0 || b.height === 0) return 0
+
   const width = Math.min(a.width, b.width)
   const height = Math.min(a.height, b.height)
 

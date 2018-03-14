@@ -76,7 +76,7 @@ export default class ImageFader extends React.Component {
       }
 
       if (style.opacity !== 1 || style.brightness !== 1)
-        style.transform = 'translate3d(0, 0, 0)'
+        style.transform = 'translateZ(0)'
 
       if (data.element.props.style)
         props.style = { ...props.style, ...data.element.props.style }
