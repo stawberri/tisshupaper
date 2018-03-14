@@ -17,8 +17,6 @@ const Wrapper = styled.div`
   justify-content: center;
   align-items: center;
 
-  transform: translate3d(0, 0, 0);
-
   overflow: hidden;
 `
 
@@ -202,6 +200,7 @@ class Image extends React.Component {
       const sizes = this.getSize()
 
       const css = { ...sizes, opacity }
+      if (opacity !== 1) css.transform = 'translate3d(0, 0, 0)'
 
       if (size === -1) {
         const color = postColor(post)

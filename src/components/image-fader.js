@@ -65,17 +65,24 @@ export default class ImageFader extends React.Component {
   }
 
   renderTransition = styles => {
-    const children = styles.map(({ key, data, style }) =>
-      React.cloneElement(data.element, {
+    const children = styles.map(({ key, data, style }) => {
+      const props = {
         key,
         onLoad: this.childLoaded,
         style: {
-          ...(data.element.props.style || {}),
           opacity: style.opacity,
           filter: `brightness(${style.brightness})`
         }
-      })
-    )
+      }
+
+      if (style.opacity !== 1 || style.brightness !== 1)
+        style.transform = 'translate3d(0, 0, 0)'
+
+      if (data.element.props.style)
+        props.style = { ...props.style, ...data.element.props.style }
+
+      return React.cloneElement(data.element, props)
+    })
 
     return <React.Fragment>{children}</React.Fragment>
   }
