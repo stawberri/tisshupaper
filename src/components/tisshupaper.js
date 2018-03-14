@@ -6,7 +6,7 @@ import { spring, Motion } from 'react-motion'
 let registrations = 0
 let registrationListener
 
-const Wrapper = styled.div`
+const Screen = styled.div`
   position: fixed;
   top: 0;
   left: 0;
@@ -26,6 +26,10 @@ const Wrapper = styled.div`
 
   @media (min-width: 1000px) {
     font-size: 100px;
+  }
+
+  &::before {
+    content: 'Tisshupaper';
   }
 `
 
@@ -53,9 +57,13 @@ export class TisshupaperScreen extends React.Component {
     this.setState({ registrations })
   }
 
-  renderMotion(style) {
-    if (!style.opacity) return null
-    return <Wrapper style={style}>Tisshupaper</Wrapper>
+  renderMotion({ opacity }) {
+    if (!opacity) return null
+
+    const style = { opacity }
+    if (opacity < 1) style.pointerEvents = 'none'
+
+    return <Screen style={style} />
   }
 
   render() {
