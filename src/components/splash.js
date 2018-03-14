@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import { connect } from 'react-redux'
-import { generatePostTitle } from 'utils/danbooru'
+import { generatePostTitle, isValidImage } from 'utils/danbooru'
 import { resize, contained, coverage } from 'utils/image'
 import resized from 'utils/resized'
 
@@ -124,6 +124,7 @@ class Splash extends React.Component {
 
     const maxScore = findMaxScore(posts, data)
     const sortedPosts = posts
+      .filter(id => isValidImage(data[id]))
       .map((id, index) => {
         let score = 0
         const post = data[id]
@@ -137,9 +138,9 @@ class Splash extends React.Component {
 
         score += indexScore
         score += scoreScore
-        score += aspectRatioScore
-        score += croppedOffScore
-        if (contained(size, postSize)) score += croppedOffScore
+        score += aspectRatioScore * 6
+        score += croppedOffScore * 2
+        if (contained(size, postSize)) score += croppedOffScore * 4
 
         return [score, post]
       })
@@ -174,11 +175,7 @@ class Splash extends React.Component {
             {current && (
               <Motion style={metaStyle}>
                 {({ translateX }) => (
-                  <Meta
-                    style={{
-                      transform: `translateX(${translateX}%)`
-                    }}
-                  >
+                  <Meta style={{ transform: `translateX(${translateX}%)` }}>
                     {generatePostTitle(current)}
                   </Meta>
                 )}

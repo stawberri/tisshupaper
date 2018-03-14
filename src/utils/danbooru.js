@@ -82,3 +82,9 @@ export function postColor(post) {
   if (colors.length) return chroma.average(colors)
   else return chroma(parseInt(post.md5, 16) % 0xffffff)
 }
+
+export function isValidImage(post) {
+  if (post.file_ext === 'zip') return false
+
+  return true
+}

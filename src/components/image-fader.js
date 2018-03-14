@@ -70,6 +70,7 @@ export default class ImageFader extends React.Component {
         key,
         onLoad: this.childLoaded,
         style: {
+          ...(data.element.props.style || {}),
           opacity: style.opacity,
           filter: `brightness(${style.brightness})`
         }
