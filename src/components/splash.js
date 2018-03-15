@@ -150,85 +150,80 @@ class Splash extends React.Component {
     const current = data[currentId]
 
     return (
-      <React.Fragment>
-        {!current && <Tisshupaper />}
-
-        <Route path="/home">
-          {({ match }) =>
-            post ? (
-              <Wrapper innerRef={this.wrapperRef}>
-                <Motion
-                  style={{
-                    i: spring(+!match),
-                    ...(match
-                      ? {
-                          top: spring(0),
-                          height: spring(0),
-                          left: spring(-100),
-                          width: spring(0)
-                        }
-                      : {
-                          top: spring(0),
-                          height: spring(0),
-                          left: spring(0),
-                          width: spring(0)
-                        })
-                  }}
-                >
-                  {({ i, left, top, width, height }) => (
-                    <ImageFader onLoad={this.postLoad}>
-                      <MainImage
-                        id={post.id}
-                        spring={i !== +!match && {}}
-                        cover={!match}
-                        style={
-                          left
-                            ? {
-                                top: `${top}rem`,
-                                left: `${left}%`,
-                                height: `calc(100% - ${height}rem)`,
-                                width: `calc(100% - ${width}%)`,
-                                ...(i !== +!match
-                                  ? { transform: 'translateZ(0)' }
-                                  : {})
-                              }
-                            : undefined
-                        }
-                      />
-                    </ImageFader>
-                  )}
-                </Motion>
-
-                {current && (
-                  <Motion
-                    style={
-                      match
-                        ? { opacity: spring(0) }
-                        : { opacity: changed ? 0 : spring(1) }
-                    }
-                  >
-                    {({ opacity }) =>
-                      opacity > 0 && (
-                        <Meta
-                          style={
-                            opacity < 1
-                              ? { opacity, transform: `translateZ(0)` }
-                              : undefined
-                          }
-                        >
-                          {readTagString(current.tag_string_artist)}
-                        </Meta>
-                      )
-                    }
-                  </Motion>
+      <Route path="/home">
+        {({ match }) => (
+          <Wrapper innerRef={this.wrapperRef}>
+            {!current && <Tisshupaper />}
+            {post && (
+              <Motion
+                style={{
+                  i: spring(+!match),
+                  ...(match
+                    ? {
+                        top: spring(0),
+                        height: spring(0),
+                        left: spring(-100),
+                        width: spring(0)
+                      }
+                    : {
+                        top: spring(0),
+                        height: spring(0),
+                        left: spring(0),
+                        width: spring(0)
+                      })
+                }}
+              >
+                {({ i, left, top, width, height }) => (
+                  <ImageFader onLoad={this.postLoad}>
+                    <MainImage
+                      id={post.id}
+                      spring={i !== +!match && {}}
+                      cover={!match}
+                      style={
+                        left
+                          ? {
+                              top: `${top}rem`,
+                              left: `${left}%`,
+                              height: `calc(100% - ${height}rem)`,
+                              width: `calc(100% - ${width}%)`,
+                              ...(i !== +!match
+                                ? { transform: 'translateZ(0)' }
+                                : {})
+                            }
+                          : undefined
+                      }
+                    />
+                  </ImageFader>
                 )}
-
-                {!match && <HomeLink to="/home" />}
-              </Wrapper>
-            ) : null
-          }
-        </Route>
-      </React.Fragment>
+              </Motion>
+            )}{' '}
+            {current && (
+              <Motion
+                style={
+                  match
+                    ? { opacity: spring(0) }
+                    : { opacity: changed ? 0 : spring(1) }
+                }
+              >
+                {({ opacity }) =>
+                  opacity > 0 && (
+                    <Meta
+                      style={
+                        opacity < 1
+                          ? { opacity, transform: `translateZ(0)` }
+                          : undefined
+                      }
+                    >
+                      {readTagString(current.tag_string_artist)}
+                    </Meta>
+                  )
+                }
+              </Motion>
+            )}
+            {!match && <HomeLink to="/home" />}
+          </Wrapper>
+        )}
+      </Route>
     )
   }
 }
