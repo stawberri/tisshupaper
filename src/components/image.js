@@ -222,7 +222,7 @@ class Image extends React.Component {
       return <Picture key={key} src={src} style={css} postSize={size} />
     })
 
-    return <React.Fragment>{children}</React.Fragment>
+    return <React.Fragment children={children} />
   }
 
   render() {

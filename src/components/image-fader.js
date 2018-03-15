@@ -84,7 +84,7 @@ export default class ImageFader extends React.Component {
       return React.cloneElement(data.element, props)
     })
 
-    return <React.Fragment>{children}</React.Fragment>
+    return <React.Fragment children={children} />
   }
 
   render() {

@@ -22,6 +22,7 @@ const Screen = styled.aside`
 
   color: ${({ theme }) => theme.fg};
   font-size: 10vw;
+  font-weight: 200;
   background: ${({ theme }) => theme.bg};
 
   @media (min-width: 1000px) {
