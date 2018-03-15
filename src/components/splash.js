@@ -1,9 +1,9 @@
 import React from 'react'
 import styled from 'styled-components'
-import connect from '../utils/connect'
+import { connect } from '../utils'
 import { generatePostTitle, isValidImage } from '../utils/danbooru'
 import { resize, contained, coverage } from '../utils/image'
-import resized from '../utils/resized'
+import { resized } from '../utils'
 
 import Image from './image'
 import ImageFader from './image-fader'
