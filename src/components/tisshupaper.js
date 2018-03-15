@@ -20,9 +20,9 @@ const Screen = styled.div`
   justify-content: center;
   align-items: center;
 
-  color: #444;
+  color: ${({ theme }) => theme.fg};
   font-size: 10vw;
-  background: #fff;
+  background: ${({ theme }) => theme.bg};
 
   @media (min-width: 1000px) {
     font-size: 100px;
@@ -60,10 +60,13 @@ export class TisshupaperScreen extends React.Component {
   renderMotion({ opacity }) {
     if (!opacity) return null
 
-    const style = { opacity }
+    let style
     if (opacity < 1) {
-      style.pointerEvents = 'none'
-      style.transform = 'translateZ(0)'
+      style = {
+        opacity,
+        pointerEvents: 'none',
+        transform: 'translateZ(0)'
+      }
     }
 
     return <Screen style={style} />

@@ -38,8 +38,9 @@ const Meta = styled.p`
 
   font-weight: 900;
   font-size: 2rem;
-  color: white;
-  text-shadow: 0 0 0.1em black, 0 0 0.5em black, 0 0 1em black;
+  color: ${({ theme }) => theme.bg};
+  text-shadow: 0 0 0.1em ${({ theme }) => theme.fg},
+    0 0 0.5em ${({ theme }) => theme.fg}, 0 0 1em ${({ theme }) => theme.fg};
 
   white-space: nowrap;
   overflow: hidden;
@@ -47,7 +48,7 @@ const Meta = styled.p`
 
   &::before {
     content: 'illust. ';
-    opacity: 0.75;
+    opacity: 0.95;
     font-size: 0.85em;
     font-weight: 600;
   }
