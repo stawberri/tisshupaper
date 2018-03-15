@@ -28,18 +28,33 @@ const Meta = styled.p`
   position: absolute;
   bottom: 0;
 
+  box-sizing: border-box;
+  max-width: 100%;
   margin: 0;
   padding: 1em 1.3em;
   padding-left: max(1.3em, env(safe-area-inset-left));
   padding-right: max(1.3em, env(safe-area-inset-right));
   padding-bottom: max(1em, env(safe-area-inset-bottom));
 
-  font-size: 1.5rem;
+  font-weight: 900;
+  font-size: 2rem;
   color: white;
   text-shadow: 0 0 0.1em black, 0 0 0.5em black, 0 0 1em black;
 
   white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+
+  &::before {
+    content: 'illust. ';
+    opacity: 0.75;
+    font-size: 0.85em;
+    font-weight: 600;
+  }
+
+  @media (max-width: 25rem) {
+    font-size: 1.5rem;
+  }
 `
 
 const HomeLink = styled(Link)`
@@ -200,7 +215,7 @@ class Splash extends React.Component {
                               : undefined
                           }
                         >
-                          illust. {readTagString(current.tag_string_artist)}
+                          {readTagString(current.tag_string_artist)}
                         </Meta>
                       )
                     }
