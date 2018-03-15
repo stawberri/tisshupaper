@@ -1,4 +1,5 @@
-import actions from 'store/actions/splash'
+import actions from '../actions/splash'
+import { isValidImage } from '../../utils/danbooru'
 
 const init = {
   posts: []
@@ -7,7 +8,12 @@ const init = {
 export default function(state = init, { type, payload }) {
   switch (type) {
     case actions.set:
-      return { ...state, posts: [...payload.ids] }
+      const posts = []
+      for (const post of payload.posts) {
+        if (isValidImage(post)) posts.push(post.id)
+      }
+
+      return { ...state, posts }
 
     default:
       return state

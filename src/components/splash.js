@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import { connect } from '../utils'
-import { readTagString, isValidImage } from '../utils/danbooru'
+import { readTagString } from '../utils/danbooru'
 import { resize, contained, coverage } from '../utils/image'
 import { resized } from '../utils'
 
@@ -116,7 +116,7 @@ class Splash extends React.Component {
     let bestPost
     let bestScore = -Infinity
 
-    posts.filter(id => isValidImage(data[id])).forEach((id, index) => {
+    posts.forEach((id, index) => {
       let score = 0
       const post = data[id]
       const postSize = { width: post.image_width, height: post.image_height }

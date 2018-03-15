@@ -6,10 +6,10 @@ const actions = {
 
 export default actions
 
-export function set(ids) {
+export function set(posts) {
   return {
     type: actions.set,
-    payload: { ids }
+    payload: { posts }
   }
 }
 
@@ -19,6 +19,6 @@ export function fetch(limit) {
     const posts = await danbooru.posts({ tags, limit })
 
     dispatch(merge(posts))
-    dispatch(set(posts.map(({ id }) => id)))
+    dispatch(set(posts))
   }
 }
