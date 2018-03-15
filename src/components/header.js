@@ -7,9 +7,9 @@ import FontAwesome from '@fortawesome/react-fontawesome'
 const Wrapper = styled.header`
   display: grid;
   grid-template-columns: 1fr auto 1fr;
-  align-items: stretch;
+  align-items: center;
 
-  height: 3rem;
+  height: 2em;
   padding-top: env(safe-area-inset-top);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
@@ -17,7 +17,6 @@ const Wrapper = styled.header`
   font-size: 2rem;
 
   @media (max-width: 30rem) {
-    height: 2rem;
     font-size: 1.5rem;
   }
 `
@@ -33,7 +32,9 @@ const Left = styled(Link)`
   grid-column: 1 / 2;
   justify-self: start;
 
-  padding: 0 0.5em;
+  padding: 0 0.7em;
+
+  font-size: 0.8em;
 
   color: inherit;
   text-decoration: none;
@@ -50,7 +51,7 @@ export default class Header extends React.Component {
 
     return (
       <Wrapper>
-        <Right />
+        {false && <Right />}
         {to && (
           <Left to={to}>
             <FontAwesome icon="chevron-left" />
