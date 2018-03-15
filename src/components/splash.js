@@ -25,8 +25,9 @@ const MainImage = styled(Image)`
   height: 100%;
 `
 
-const Meta = styled.p`
+const Meta = styled.figcaption`
   position: absolute;
+  left: 0;
   bottom: 0;
 
   box-sizing: border-box;
@@ -73,8 +74,7 @@ class Splash extends React.Component {
     this.state = {
       width: 0,
       height: 0,
-      currentId: 0,
-      changed: false
+      currentId: 0
     }
   }
 
@@ -97,12 +97,7 @@ class Splash extends React.Component {
 
   postLoad = async ({ id }) => {
     if (this.state.currentId === id) return
-
-    await new Promise(done =>
-      this.setState({ currentId: id, changed: true }, done)
-    )
-
-    this.setState({ changed: false })
+    this.setState({ currentId: id })
   }
 
   postTarget = () => {}
@@ -146,7 +141,7 @@ class Splash extends React.Component {
   }
 
   render() {
-    const { currentId, changed } = this.state
+    const { currentId } = this.state
     const { data } = this.props
 
     const post = this.pickPost()
@@ -196,32 +191,25 @@ class Splash extends React.Component {
                             }
                           : undefined
                       }
-                    />
+                    >
+                      <Motion style={{ opacity: spring(+!match) }}>
+                        {({ opacity }) =>
+                          opacity > 0 && (
+                            <Meta
+                              style={
+                                opacity < 1
+                                  ? { opacity, transform: `translateZ(0)` }
+                                  : undefined
+                              }
+                            >
+                              {readTagString(post.tag_string_artist)}
+                            </Meta>
+                          )
+                        }
+                      </Motion>
+                    </MainImage>
                   </ImageFader>
                 )}
-              </Motion>
-            )}
-            {current && (
-              <Motion
-                style={
-                  match
-                    ? { opacity: spring(0) }
-                    : { opacity: changed ? 0 : spring(1) }
-                }
-              >
-                {({ opacity }) =>
-                  opacity > 0 && (
-                    <Meta
-                      style={
-                        opacity < 1
-                          ? { opacity, transform: `translateZ(0)` }
-                          : undefined
-                      }
-                    >
-                      {readTagString(current.tag_string_artist)}
-                    </Meta>
-                  )
-                }
               </Motion>
             )}
             {!match && <HomeLink to="/home" />}

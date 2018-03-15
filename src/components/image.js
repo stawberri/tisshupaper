@@ -10,7 +10,7 @@ import { uniqueKey } from '../utils'
 
 import { spring, Motion, TransitionMotion } from 'react-motion'
 
-const Wrapper = styled.div`
+const Wrapper = styled.figure`
   position: relative;
 
   display: flex;
@@ -18,6 +18,8 @@ const Wrapper = styled.div`
   align-items: center;
 
   overflow: hidden;
+
+  margin: 0;
 `
 
 const scrollBg = keyframes`
@@ -227,6 +229,7 @@ class Image extends React.Component {
     const { loaded, key } = this.state
 
     const {
+      children,
       className,
       post,
       danbooru,
@@ -287,6 +290,7 @@ class Image extends React.Component {
             )}
           </Motion>
         )}
+        {children}
       </Wrapper>
     )
   }

@@ -6,7 +6,7 @@ import { spring, Motion } from 'react-motion'
 let registrations = 0
 let registrationListener
 
-const Screen = styled.div`
+const Screen = styled.aside`
   position: fixed;
   top: 0;
   left: 0;
