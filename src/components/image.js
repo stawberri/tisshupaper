@@ -1,12 +1,12 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import styled, { keyframes, css } from 'styled-components'
-import { resize } from 'utils/image'
-import { postSize, postColor } from 'utils/danbooru'
-import resized from 'utils/resized'
+import { resize } from '../utils/image'
+import { postSize, postColor } from '../utils/danbooru'
+import resized from '../utils/resized'
 import transparent from 'img/transparent.gif'
 import asap from 'asap'
-import uniqueKey from 'utils/unique-key'
+import uniqueKey from '../utils/unique-key'
 
 import { spring, Motion, TransitionMotion } from 'react-motion'
 

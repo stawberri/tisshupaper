@@ -1,9 +1,9 @@
 import React from 'react'
 import styled from 'styled-components'
-import connect from 'utils/connect'
-import { generatePostTitle, isValidImage } from 'utils/danbooru'
-import { resize, contained, coverage } from 'utils/image'
-import resized from 'utils/resized'
+import connect from '../utils/connect'
+import { generatePostTitle, isValidImage } from '../utils/danbooru'
+import { resize, contained, coverage } from '../utils/image'
+import resized from '../utils/resized'
 
 import Image from './image'
 import ImageFader from './image-fader'
@@ -16,21 +16,6 @@ const Wrapper = styled.div`
   overflow: hidden;
 
   height: 100%;
-`
-
-const blurStrength = 'calc((5vw + 5vh) / 2)'
-const BackgroundImage = styled(Image).attrs({ cover: true })`
-  position: absolute;
-  top: calc(-2 * ${blurStrength});
-  left: calc(-2 * ${blurStrength});
-  width: calc(4 * ${blurStrength} + 100vw);
-  height: calc(4 * ${blurStrength} + 100vh);
-
-  filter: blur(${blurStrength});
-  transform: translateZ(0);
-
-  z-index: -1;
-  pointer-events: none;
 `
 
 const MainImage = styled(Image)`
@@ -64,6 +49,12 @@ const Meta = styled.p`
   backdrop-filter: blur(0.3rem);
 `
 
+const HomeLink = styled(Link)`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+`
+
 class Splash extends React.Component {
   constructor(props) {
     super(props)
@@ -82,6 +73,8 @@ class Splash extends React.Component {
 
   wrapperRef = ref => {
     if (this.unobserveWrapper) this.unobserveWrapper()
+    if (!ref) return
+
     this.unobserveWrapper = resized(ref, entry => {
       const { width, height } = entry.contentRect
       this.updateImageSize(width, height)
@@ -154,7 +147,6 @@ class Splash extends React.Component {
           {({ match }) =>
             post ? (
               <Wrapper innerRef={this.wrapperRef}>
-                {current && <BackgroundImage id={current.id} size={0} />}
                 <Motion
                   style={{
                     i: spring(+!match),
@@ -164,22 +156,20 @@ class Splash extends React.Component {
                   }}
                 >
                   {({ i, top, height }) => (
-                    <Link to={match ? '/' : '/home'}>
-                      <ImageFader onLoad={this.postLoad}>
-                        <MainImage
-                          id={post.id}
-                          spring={i !== +!match && {}}
-                          cover={!match}
-                          style={{
-                            top: `${top}rem`,
-                            height: `calc(100% - ${height}rem)`,
-                            ...(i !== +!match
-                              ? { transform: 'translateZ(0)' }
-                              : {})
-                          }}
-                        />
-                      </ImageFader>
-                    </Link>
+                    <ImageFader onLoad={this.postLoad}>
+                      <MainImage
+                        id={post.id}
+                        spring={i !== +!match && {}}
+                        cover={!match}
+                        style={{
+                          top: `${top}rem`,
+                          height: `calc(100% - ${height}rem)`,
+                          ...(i !== +!match
+                            ? { transform: 'translateZ(0)' }
+                            : {})
+                        }}
+                      />
+                    </ImageFader>
                   )}
                 </Motion>
                 {current && (
@@ -207,6 +197,7 @@ class Splash extends React.Component {
                     }
                   </Motion>
                 )}
+                {!match && <HomeLink to="/home" />}
               </Wrapper>
             ) : null
           }

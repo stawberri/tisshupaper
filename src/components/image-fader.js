@@ -1,6 +1,6 @@
 import React from 'react'
 import asap from 'asap'
-import uniqueKey from 'utils/unique-key'
+import uniqueKey from '../utils/unique-key'
 
 import { spring, TransitionMotion } from 'react-motion'
 
