@@ -10,6 +10,7 @@ import ImageFader from './image-fader'
 import { spring, Motion } from 'react-motion'
 import Tisshupaper from './tisshupaper'
 import { Route, Link } from 'react-router-dom'
+import Home from './home'
 
 const Wrapper = styled.div`
   position: relative;
@@ -104,6 +105,8 @@ class Splash extends React.Component {
     this.setState({ changed: false })
   }
 
+  postTarget = () => {}
+
   pickPost(props = this.props) {
     const { width, height } = this.state
     const { data, posts } = props
@@ -154,6 +157,7 @@ class Splash extends React.Component {
         {({ match }) => (
           <Wrapper innerRef={this.wrapperRef}>
             {!current && <Tisshupaper />}
+            {match && <Home post={current} onPostTarget={this.postTarget} />}
             {post && (
               <Motion
                 style={{
@@ -196,7 +200,7 @@ class Splash extends React.Component {
                   </ImageFader>
                 )}
               </Motion>
-            )}{' '}
+            )}
             {current && (
               <Motion
                 style={
