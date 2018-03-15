@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import { connect } from '../utils'
-import { generatePostTitle, isValidImage } from '../utils/danbooru'
+import { readTagString, isValidImage } from '../utils/danbooru'
 import { resize, contained, coverage } from '../utils/image'
 import { resized } from '../utils'
 
@@ -21,36 +21,30 @@ const Wrapper = styled.div`
 const MainImage = styled(Image)`
   position: absolute;
   width: 100%;
+  height: 100%;
 `
 
 const Meta = styled.p`
   position: absolute;
   bottom: 0;
 
-  box-sizing: border-box;
-  height: 2rem;
-  max-width: 100%;
+  margin: 0;
+  padding: 1em 1.3em;
+  padding-left: max(1.3em, env(safe-area-inset-left));
+  padding-right: max(1.3em, env(safe-area-inset-right));
+  padding-bottom: max(1em, env(safe-area-inset-bottom));
 
-  padding: 0 1rem;
-  padding-left: max(1rem, env(safe-area-inset-left));
-  padding-right: max(1rem, env(safe-area-inset-right));
-  margin: 0 0 1rem;
-  margin-bottom: max(1rem, env(safe-area-inset-bottom));
+  font-size: 1.5rem;
+  color: white;
+  text-shadow: 0 0 0.1em black, 0 0 0.5em black, 0 0 1em black;
 
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: flex-end;
-
-  background: rgba(255, 255, 255, 0.69);
   white-space: nowrap;
   overflow: hidden;
-
-  backdrop-filter: blur(0.3rem);
 `
 
 const HomeLink = styled(Link)`
   position: absolute;
+
   width: 100%;
   height: 100%;
 `
@@ -151,52 +145,68 @@ class Splash extends React.Component {
                   style={{
                     i: spring(+!match),
                     ...(match
-                      ? { top: spring(5), height: spring(15) }
-                      : { top: spring(0), height: spring(0) })
+                      ? {
+                          top: spring(0),
+                          height: spring(0),
+                          left: spring(-100),
+                          width: spring(0)
+                        }
+                      : {
+                          top: spring(0),
+                          height: spring(0),
+                          left: spring(0),
+                          width: spring(0)
+                        })
                   }}
                 >
-                  {({ i, top, height }) => (
+                  {({ i, left, top, width, height }) => (
                     <ImageFader onLoad={this.postLoad}>
                       <MainImage
                         id={post.id}
                         spring={i !== +!match && {}}
                         cover={!match}
-                        style={{
-                          top: `${top}rem`,
-                          height: `calc(100% - ${height}rem)`,
-                          ...(i !== +!match
-                            ? { transform: 'translateZ(0)' }
-                            : {})
-                        }}
+                        style={
+                          left
+                            ? {
+                                top: `${top}rem`,
+                                left: `${left}%`,
+                                height: `calc(100% - ${height}rem)`,
+                                width: `calc(100% - ${width}%)`,
+                                ...(i !== +!match
+                                  ? { transform: 'translateZ(0)' }
+                                  : {})
+                              }
+                            : undefined
+                        }
                       />
                     </ImageFader>
                   )}
                 </Motion>
+
                 {current && (
                   <Motion
                     style={
                       match
-                        ? { translateX: spring(-100) }
-                        : { translateX: changed ? -100 : spring(0) }
+                        ? { opacity: spring(0) }
+                        : { opacity: changed ? 0 : spring(1) }
                     }
                   >
-                    {({ translateX }) =>
-                      translateX > -100 && (
+                    {({ opacity }) =>
+                      opacity > 0 && (
                         <Meta
                           style={
-                            translateX
-                              ? {
-                                  transform: `translateZ(0) translateX(${translateX}%)`
-                                }
-                              : null
+                            opacity < 1
+                              ? { opacity, transform: `translateZ(0)` }
+                              : undefined
                           }
                         >
-                          {generatePostTitle(current)}
+                          illust. {readTagString(current.tag_string_artist)}
                         </Meta>
                       )
                     }
                   </Motion>
                 )}
+
                 {!match && <HomeLink to="/home" />}
               </Wrapper>
             ) : null
