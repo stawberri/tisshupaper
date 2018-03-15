@@ -1,4 +1,4 @@
-import actions from 'store/actions/posts'
+import actions from '../actions/posts'
 
 const init = {
   data: {}

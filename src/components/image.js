@@ -4,7 +4,7 @@ import styled, { keyframes, css } from 'styled-components'
 import { resize } from '../utils/image'
 import { postSize, postColor } from '../utils/danbooru'
 import { resized } from '../utils'
-import transparent from 'img/transparent.gif'
+import transparent from '../img/transparent.gif'
 import asap from 'asap'
 import { uniqueKey } from '../utils'
 
