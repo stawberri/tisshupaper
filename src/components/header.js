@@ -2,6 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 
 import { Link } from 'react-router-dom'
+import FontAwesome from '@fortawesome/react-fontawesome'
 
 const Wrapper = styled.header`
   display: grid;
@@ -30,17 +31,12 @@ const Mid = styled.div`
 
 const Left = styled(Link)`
   grid-column: 1 / 2;
-  justify-self: stretch;
+  justify-self: start;
 
   padding: 0 0.5em;
-  max-width: 5em;
 
   color: inherit;
   text-decoration: none;
-
-  &::before {
-    content: '<';
-  }
 `
 
 const Right = styled.div`
@@ -55,7 +51,11 @@ export default class Header extends React.Component {
     return (
       <Wrapper>
         <Right />
-        {to && <Left to={to} />}
+        {to && (
+          <Left to={to}>
+            <FontAwesome icon="chevron-left" />
+          </Left>
+        )}
         <Mid children={children} />
       </Wrapper>
     )
