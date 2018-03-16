@@ -76,18 +76,32 @@ class Splash extends React.Component {
       height: 0,
       currentId: 0,
       imagePos: null,
-      matchSpring: false
+      enableSpring: false
     }
   }
 
   componentDidMount() {
-    this.resetMatchSpring()
+    const { location, history } = this.props
+
+    let lastMatch = !!matchPath(location.pathname, { path: '/home' })
+    this.listenHistory = history.listen(location => {
+      if (!matchPath(location.pathname, { path: '/home' }) === lastMatch) {
+        this.setState({ enableSpring: true })
+        lastMatch = !lastMatch
+      }
+    })
   }
 
-  resetMatchSpring = () => {
-    const { pathname } = this.props.location
+  componentWillUnmount() {
+    this.listenHistory()
+  }
 
-    this.setState({ matchSpring: !!matchPath(pathname, { path: '/home' }) })
+  enableSpring = () => {
+    this.setState({ enableSpring: true })
+  }
+
+  disableSpring = () => {
+    this.setState({ enableSpring: false })
   }
 
   updateImageSize(width, height) {
@@ -159,16 +173,15 @@ class Splash extends React.Component {
   }
 
   renderMatch = ({ match }) => {
-    const { currentId, imagePos, width, height, matchSpring } = this.state
+    const { currentId, imagePos, width, height, enableSpring } = this.state
     const { data } = this.props
 
     const post = this.pickPost()
     const current = data[currentId]
 
-    function conditionalSpring(value) {
-      if (matchSpring === !!match) return value
-      else return spring(value)
-    }
+    const springSettings = { stiffness: 200, damping: 19 }
+    const conditionalSpring = value =>
+      enableSpring ? spring(value, springSettings) : value
 
     return (
       <Wrapper innerRef={this.wrapperRef}>
@@ -176,10 +189,9 @@ class Splash extends React.Component {
         {match && <Home post={current} onPostTarget={this.postTarget} />}
         {post && (
           <Motion
-            onRest={this.resetMatchSpring}
-            style={{
-              i: conditionalSpring(+!match),
-              ...(match && imagePos
+            onRest={this.disableSpring}
+            style={
+              match && imagePos
                 ? {
                     top: conditionalSpring(imagePos.top),
                     height: conditionalSpring(imagePos.height),
@@ -191,30 +203,30 @@ class Splash extends React.Component {
                     height: conditionalSpring(height),
                     left: conditionalSpring(0),
                     width: conditionalSpring(width)
-                  })
-            }}
+                  }
+            }
           >
-            {({ i, left, top, width, height }) => (
+            {({ left, top, width, height }) => (
               <ImageFader onLoad={this.postLoad}>
                 <MainImage
                   id={post.id}
-                  spring={i !== +!match && {}}
+                  spring={enableSpring && springSettings}
                   cover={!match}
                   style={
-                    i < 1
+                    top || left
                       ? {
                           top,
                           left,
                           height,
                           width,
-                          ...(i !== +!match
+                          ...(enableSpring
                             ? { transform: 'translateZ(0)' }
                             : {})
                         }
                       : undefined
                   }
                 >
-                  <Motion style={{ opacity: spring(+!match) }}>
+                  <Motion style={{ opacity: spring(+!match, springSettings) }}>
                     {({ opacity }) =>
                       opacity > 0 && (
                         <Meta
