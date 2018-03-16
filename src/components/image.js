@@ -37,6 +37,7 @@ const Picture = styled.img`
     css`
       background: 0 0 / 2rem 2rem;
       animation: ${scrollBg} 1s linear infinite;
+      transform: translateZ(0);
     `}};
 `
 

@@ -73,7 +73,6 @@ class Splash extends React.Component {
     this.state = {
       width: 0,
       height: 0,
-      currentId: 0,
       imagePos: null,
       enableSpring: false
     }
@@ -120,11 +119,6 @@ class Splash extends React.Component {
     this.updateImageSize(width, height)
   }
 
-  postLoad = async ({ id }) => {
-    if (this.state.currentId === id) return
-    this.setState({ currentId: id })
-  }
-
   postTarget = imagePos => {
     this.setState({ imagePos })
   }
@@ -167,6 +161,10 @@ class Splash extends React.Component {
     return bestPost
   }
 
+  transitionEnter() {
+    return { opacity: 0 }
+  }
+
   transitionLeave() {
     return { opacity: spring(0) }
   }
@@ -176,38 +174,17 @@ class Splash extends React.Component {
   }
 
   renderMatch = ({ match }) => {
-    const { currentId, imagePos, width, height, enableSpring } = this.state
-    const { data } = this.props
+    const { imagePos, width, height, enableSpring } = this.state
+    const springSettings = { stiffness: 200, damping: 19 }
 
     const post = this.pickPost()
-    const current = data[currentId]
-
-    const springSettings = { stiffness: 200, damping: 19 }
     const conditionalSpring = value =>
       enableSpring ? spring(value, springSettings) : value
 
-    const styles = []
-
-    if (current) {
-      styles.push({
-        key: `${current.id}`,
-        data: { post: current },
-        style: { opacity: spring(1) }
-      })
-    }
-
-    if (post && post !== current) {
-      styles.push({
-        key: `${post.id}`,
-        data: { post },
-        style: { opacity: 0 }
-      })
-    }
-
     return (
       <Wrapper innerRef={this.wrapperRef}>
-        {!current && <Tisshupaper />}
-        {match && <Home post={current} onPostTarget={this.postTarget} />}
+        {!post && <Tisshupaper />}
+        {match && <Home post={post} onPostTarget={this.postTarget} />}
         {post && (
           <Motion
             onRest={this.disableSpring}
@@ -227,16 +204,21 @@ class Splash extends React.Component {
                   }
             }
           >
-            {imagePos =>
-              styles.length ? (
-                <TransitionMotion
-                  styles={styles}
-                  willLeave={this.transitionLeave}
-                >
-                  {this.renderTransition(match, imagePos)}
-                </TransitionMotion>
-              ) : null
-            }
+            {imagePos => (
+              <TransitionMotion
+                styles={[
+                  {
+                    key: `${post.id}`,
+                    data: { post },
+                    style: { opacity: spring(1) }
+                  }
+                ]}
+                willEnter={this.transitionEnter}
+                willLeave={this.transitionLeave}
+              >
+                {this.renderTransition(match, imagePos)}
+              </TransitionMotion>
+            )}
           </Motion>
         )}
         {!match && <HomeLink to="/home" />}
