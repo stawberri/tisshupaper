@@ -81,9 +81,13 @@ class Splash extends React.Component {
   }
 
   componentDidMount() {
-    this.setState({
-      matchSpring: !!matchPath(this.props.location.pathname, { path: '/home' })
-    })
+    this.resetMatchSpring()
+  }
+
+  resetMatchSpring = () => {
+    const { pathname } = this.props.location
+
+    this.setState({ matchSpring: !!matchPath(pathname, { path: '/home' }) })
   }
 
   updateImageSize(width, height) {
@@ -172,6 +176,7 @@ class Splash extends React.Component {
         {match && <Home post={current} onPostTarget={this.postTarget} />}
         {post && (
           <Motion
+            onRest={this.resetMatchSpring}
             style={{
               i: conditionalSpring(+!match),
               ...(match && imagePos

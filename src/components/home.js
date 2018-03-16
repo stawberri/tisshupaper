@@ -1,9 +1,9 @@
 import React from 'react'
 import styled from 'styled-components'
 import { resized } from '../utils'
+import { generatePostTitle } from '../utils/danbooru'
 
 import Header from './header'
-import Image from './image'
 
 const Wrapper = styled.main`
   position: absolute;
@@ -15,7 +15,7 @@ const Wrapper = styled.main`
     'header header' auto
     'image caption' 1fr
     'footer footer' auto / 1fr 30rem;
-  grid-gap: 1rem;
+  grid-gap: 1rem 2rem;
 `
 
 const StyledHeader = styled(Header)`
@@ -24,23 +24,16 @@ const StyledHeader = styled(Header)`
 
 const Picture = styled.div`
   grid-area: image;
-  overflow: hidden;
-`
 
-const StyledImage = styled(Image)`
-  width: 100%;
-  height: 100%;
-
-  transform: translateZ(0);
-  filter: blur(100px);
+  margin-left: 1rem;
 `
 
 const Caption = styled.div`
   grid-area: caption;
 
-  padding: 0.8rem 1rem;
+  margin-right: 1rem;
 
-  font-size: 3rem;
+  font-size: 2rem;
 `
 
 const Menu = styled.nav`
@@ -63,15 +56,13 @@ export default class Home extends React.Component {
   }
 
   render() {
-    const { post = {} } = this.props
+    const { post } = this.props
 
     return (
       <Wrapper>
         <StyledHeader to="/">Tisshupaper</StyledHeader>
-        <Picture innerRef={this.pictureRef}>
-          <StyledImage id={post.id} cover size={0} />
-        </Picture>
-        <Caption>Caption</Caption>
+        <Picture innerRef={this.pictureRef} />
+        <Caption>{post && generatePostTitle(post)}</Caption>
         <Menu>Menu goes here</Menu>
       </Wrapper>
     )
