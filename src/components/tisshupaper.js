@@ -58,28 +58,31 @@ export class TisshupaperScreen extends React.Component {
     this.setState({ registrations })
   }
 
-  renderMotion({ opacity }) {
-    if (!opacity) return null
-
-    let style
-    if (opacity < 1) {
-      style = {
-        opacity,
-        pointerEvents: 'none',
-        transform: 'translateZ(0)'
-      }
-    }
-
-    return <Screen style={style} />
-  }
-
   render() {
     const { registrations } = this.state
     const style = {
       opacity: spring(+!!(registrations > 0), { stiffness: 90, damping: 20 })
     }
 
-    return <Motion style={style}>{this.renderMotion}</Motion>
+    return (
+      <Motion style={style}>
+        {({ opacity }) =>
+          opacity ? (
+            <Screen
+              style={
+                opacity < 1
+                  ? {
+                      opacity,
+                      pointerEvents: 'none',
+                      transform: 'translateZ(0)'
+                    }
+                  : undefined
+              }
+            />
+          ) : null
+        }
+      </Motion>
+    )
   }
 }
 
