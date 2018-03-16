@@ -195,40 +195,6 @@ class Image extends React.Component {
     return { opacity: spring(0, { stiffness: 200, damping: 30 }) }
   }
 
-  renderTransition = (sizes, { width }) => styles => {
-    const children = styles.reverse().map(({ key, data, style }) => {
-      const { post, src, size } = data
-      const { opacity } = style
-
-      const css = { ...sizes, opacity }
-      if (opacity !== 1 || sizes.width !== width) {
-        css.transform = 'translateZ(0)'
-      }
-
-      if (size === -1) {
-        const color = postColor(post)
-        const color1 = color.brighten(1)
-        const color2 = color.brighten(1.2)
-        css.backgroundImage = `
-        repeating-linear-gradient(
-          45deg,
-          ${color1} 25%, ${color2} 25%,
-          ${color2} 50%, ${color1} 50%,
-          ${color1} 75%, ${color2} 75%
-        )
-        `
-      }
-
-      const alt = generatePostTitle(post)
-
-      return (
-        <Picture key={key} src={src} alt={alt} style={css} postSize={size} />
-      )
-    })
-
-    return <React.Fragment children={children} />
-  }
-
   render() {
     const { loaded, key } = this.state
 
@@ -297,6 +263,40 @@ class Image extends React.Component {
         {children}
       </Wrapper>
     )
+  }
+
+  renderTransition = (sizes, { width }) => styles => {
+    const children = styles.reverse().map(({ key, data, style }) => {
+      const { post, src, size } = data
+      const { opacity } = style
+
+      const css = { ...sizes, opacity }
+      if (opacity !== 1 || sizes.width !== width) {
+        css.transform = 'translateZ(0)'
+      }
+
+      if (size === -1) {
+        const color = postColor(post)
+        const color1 = color.brighten(1)
+        const color2 = color.brighten(1.2)
+        css.backgroundImage = `
+        repeating-linear-gradient(
+          45deg,
+          ${color1} 25%, ${color2} 25%,
+          ${color2} 50%, ${color1} 50%,
+          ${color1} 75%, ${color2} 75%
+        )
+        `
+      }
+
+      const alt = generatePostTitle(post)
+
+      return (
+        <Picture key={key} src={src} alt={alt} style={css} postSize={size} />
+      )
+    })
+
+    return <React.Fragment children={children} />
   }
 }
 
