@@ -47,10 +47,10 @@ const Right = styled.div`
 
 export default class Header extends React.Component {
   render() {
-    const { children, to } = this.props
+    const { children, to, className } = this.props
 
     return (
-      <Wrapper>
+      <Wrapper className={className}>
         {false && <Right />}
         {to && (
           <Left to={to}>

@@ -9,7 +9,7 @@ import Image from './image'
 import ImageFader from './image-fader'
 import { spring, Motion } from 'react-motion'
 import Tisshupaper from './tisshupaper'
-import { Route, Link } from 'react-router-dom'
+import { Route, Link, matchPath } from 'react-router-dom'
 import Home from './home'
 
 const Wrapper = styled.div`
@@ -74,8 +74,16 @@ class Splash extends React.Component {
     this.state = {
       width: 0,
       height: 0,
-      currentId: 0
+      currentId: 0,
+      imagePos: null,
+      matchSpring: false
     }
+  }
+
+  componentDidMount() {
+    this.setState({
+      matchSpring: !!matchPath(this.props.location.pathname, { path: '/home' })
+    })
   }
 
   updateImageSize(width, height) {
@@ -100,7 +108,9 @@ class Splash extends React.Component {
     this.setState({ currentId: id })
   }
 
-  postTarget = () => {}
+  postTarget = imagePos => {
+    this.setState({ imagePos })
+  }
 
   pickPost(props = this.props) {
     const { width, height } = this.state
@@ -141,81 +151,86 @@ class Splash extends React.Component {
   }
 
   render() {
-    const { currentId } = this.state
+    return <Route path="/home" children={this.renderMatch} />
+  }
+
+  renderMatch = ({ match }) => {
+    const { currentId, imagePos, width, height, matchSpring } = this.state
     const { data } = this.props
 
     const post = this.pickPost()
     const current = data[currentId]
 
+    function conditionalSpring(value) {
+      if (matchSpring === !!match) return value
+      else return spring(value)
+    }
+
     return (
-      <Route path="/home">
-        {({ match }) => (
-          <Wrapper innerRef={this.wrapperRef}>
-            {!current && <Tisshupaper />}
-            {match && <Home post={current} onPostTarget={this.postTarget} />}
-            {post && (
-              <Motion
-                style={{
-                  i: spring(+!match),
-                  ...(match
-                    ? {
-                        top: spring(0),
-                        height: spring(0),
-                        left: spring(-100),
-                        width: spring(0)
-                      }
-                    : {
-                        top: spring(0),
-                        height: spring(0),
-                        left: spring(0),
-                        width: spring(0)
-                      })
-                }}
-              >
-                {({ i, left, top, width, height }) => (
-                  <ImageFader onLoad={this.postLoad}>
-                    <MainImage
-                      id={post.id}
-                      spring={i !== +!match && {}}
-                      cover={!match}
-                      style={
-                        left
-                          ? {
-                              top: `${top}rem`,
-                              left: `${left}%`,
-                              height: `calc(100% - ${height}rem)`,
-                              width: `calc(100% - ${width}%)`,
-                              ...(i !== +!match
-                                ? { transform: 'translateZ(0)' }
-                                : {})
-                            }
-                          : undefined
-                      }
-                    >
-                      <Motion style={{ opacity: spring(+!match) }}>
-                        {({ opacity }) =>
-                          opacity > 0 && (
-                            <Meta
-                              style={
-                                opacity < 1
-                                  ? { opacity, transform: `translateZ(0)` }
-                                  : undefined
-                              }
-                            >
-                              {readTagString(post.tag_string_artist)}
-                            </Meta>
-                          )
+      <Wrapper innerRef={this.wrapperRef}>
+        {!current && <Tisshupaper />}
+        {match && <Home post={current} onPostTarget={this.postTarget} />}
+        {post && (
+          <Motion
+            style={{
+              i: conditionalSpring(+!match),
+              ...(match && imagePos
+                ? {
+                    top: conditionalSpring(imagePos.top),
+                    height: conditionalSpring(imagePos.height),
+                    left: conditionalSpring(imagePos.left),
+                    width: conditionalSpring(imagePos.width)
+                  }
+                : {
+                    top: conditionalSpring(0),
+                    height: conditionalSpring(height),
+                    left: conditionalSpring(0),
+                    width: conditionalSpring(width)
+                  })
+            }}
+          >
+            {({ i, left, top, width, height }) => (
+              <ImageFader onLoad={this.postLoad}>
+                <MainImage
+                  id={post.id}
+                  spring={i !== +!match && {}}
+                  cover={!match}
+                  style={
+                    i < 1
+                      ? {
+                          top,
+                          left,
+                          height,
+                          width,
+                          ...(i !== +!match
+                            ? { transform: 'translateZ(0)' }
+                            : {})
                         }
-                      </Motion>
-                    </MainImage>
-                  </ImageFader>
-                )}
-              </Motion>
+                      : undefined
+                  }
+                >
+                  <Motion style={{ opacity: spring(+!match) }}>
+                    {({ opacity }) =>
+                      opacity > 0 && (
+                        <Meta
+                          style={
+                            opacity < 1
+                              ? { opacity, transform: `translateZ(0)` }
+                              : undefined
+                          }
+                        >
+                          {readTagString(post.tag_string_artist)}
+                        </Meta>
+                      )
+                    }
+                  </Motion>
+                </MainImage>
+              </ImageFader>
             )}
-            {!match && <HomeLink to="/home" />}
-          </Wrapper>
+          </Motion>
         )}
-      </Route>
+        {!match && <HomeLink to="/home" />}
+      </Wrapper>
     )
   }
 }

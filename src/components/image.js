@@ -2,7 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import styled, { keyframes, css } from 'styled-components'
 import { resize } from '../utils/image'
-import { postSize, postColor } from '../utils/danbooru'
+import { postSize, postColor, generatePostTitle } from '../utils/danbooru'
 import { resized } from '../utils'
 import transparent from '../img/transparent.gif'
 import asap from 'asap'
@@ -63,11 +63,11 @@ class Image extends React.Component {
   }
 
   componentWillReceiveProps(props) {
-    let oldProps = this.props
-    const { post, size } = props
+    const { post = {}, size } = props
+    const { post: oldPost = {}, size: oldSize } = this.props
 
-    if (oldProps.post.id !== post.id) asap(() => this.beginPreload(true))
-    else if (oldProps.size !== size) asap(() => this.beginPreload())
+    if (oldPost.id !== post.id) asap(() => this.beginPreload(true))
+    else if (oldSize !== size) asap(() => this.beginPreload())
   }
 
   componentWillUnmount() {
@@ -219,7 +219,11 @@ class Image extends React.Component {
         `
       }
 
-      return <Picture key={key} src={src} style={css} postSize={size} />
+      const alt = generatePostTitle(post)
+
+      return (
+        <Picture key={key} src={src} alt={alt} style={css} postSize={size} />
+      )
     })
 
     return <React.Fragment children={children} />
