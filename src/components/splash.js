@@ -6,8 +6,7 @@ import { resize, contained, coverage } from '../utils/image'
 import { resized } from '../utils'
 
 import Image from './image'
-import ImageFader from './image-fader'
-import { spring, Motion } from 'react-motion'
+import { spring, Motion, TransitionMotion } from 'react-motion'
 import Tisshupaper from './tisshupaper'
 import { Route, Link, matchPath } from 'react-router-dom'
 import Home from './home'
@@ -168,6 +167,10 @@ class Splash extends React.Component {
     return bestPost
   }
 
+  transitionLeave() {
+    return { opacity: spring(0) }
+  }
+
   render() {
     return <Route path="/home" children={this.renderMatch} />
   }
@@ -182,6 +185,24 @@ class Splash extends React.Component {
     const springSettings = { stiffness: 200, damping: 19 }
     const conditionalSpring = value =>
       enableSpring ? spring(value, springSettings) : value
+
+    const styles = []
+
+    if (current) {
+      styles.push({
+        key: `${current.id}`,
+        data: { post: current },
+        style: { opacity: spring(1) }
+      })
+    }
+
+    if (post && post !== current) {
+      styles.push({
+        key: `${post.id}`,
+        data: { post },
+        style: { opacity: 0 }
+      })
+    }
 
     return (
       <Wrapper innerRef={this.wrapperRef}>
@@ -206,48 +227,74 @@ class Splash extends React.Component {
                   }
             }
           >
-            {({ left, top, width, height }) => (
-              <ImageFader onLoad={this.postLoad}>
-                <MainImage
-                  id={post.id}
-                  spring={enableSpring && springSettings}
-                  cover={!match}
-                  style={
-                    top || left
-                      ? {
-                          top,
-                          left,
-                          height,
-                          width,
-                          ...(enableSpring
-                            ? { transform: 'translateZ(0)' }
-                            : {})
-                        }
-                      : undefined
-                  }
+            {imagePos =>
+              styles.length ? (
+                <TransitionMotion
+                  styles={styles}
+                  willLeave={this.transitionLeave}
                 >
-                  <Motion style={{ opacity: spring(+!match, springSettings) }}>
-                    {({ opacity }) =>
-                      opacity > 0 && (
-                        <Meta
-                          style={
-                            opacity < 1
-                              ? { opacity, transform: `translateZ(0)` }
-                              : undefined
-                          }
-                        >
-                          {readTagString(post.tag_string_artist)}
-                        </Meta>
-                      )
-                    }
-                  </Motion>
-                </MainImage>
-              </ImageFader>
-            )}
+                  {this.renderTransition(match, imagePos)}
+                </TransitionMotion>
+              ) : null
+            }
           </Motion>
         )}
         {!match && <HomeLink to="/home" />}
       </Wrapper>
+    )
+  }
+
+  renderTransition = (match, imagePos) => styles => {
+    const { width, height, enableSpring } = this.state
+    const springSettings = { stiffness: 200, damping: 19 }
+
+    return (
+      <React.Fragment>
+        {styles.map(({ key, data: { post }, style: { opacity } }) => (
+          <MainImage
+            key={key}
+            id={post.id}
+            onLoad={this.postLoad}
+            spring={enableSpring && springSettings}
+            cover={!match}
+            style={{
+              ...(opacity < 1
+                ? { opacity, filter: `brightness(${3 - opacity * 2})` }
+                : {}),
+              ...(imagePos.top ||
+              imagePos.left ||
+              imagePos.width !== width ||
+              imagePos.height !== height
+                ? {
+                    top: imagePos.top,
+                    left: imagePos.left,
+                    height: imagePos.height,
+                    width: imagePos.width
+                  }
+                : {}),
+              ...(enableSpring || opacity < 1
+                ? { transform: 'translateZ(0)' }
+                : {})
+            }}
+          >
+            <Motion style={{ opacity: spring(+!match, springSettings) }}>
+              {({ opacity }) =>
+                opacity > 0 && (
+                  <Meta
+                    style={
+                      opacity < 1
+                        ? { opacity, transform: `translateZ(0)` }
+                        : undefined
+                    }
+                  >
+                    {readTagString(post.tag_string_artist)}
+                  </Meta>
+                )
+              }
+            </Motion>
+          </MainImage>
+        ))}
+      </React.Fragment>
     )
   }
 }
