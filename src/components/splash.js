@@ -27,6 +27,7 @@ const MainImage = styled(Image)`
   position: absolute;
   width: 100%;
   height: 100%;
+  overflow: visible;
 `
 
 const Meta = styled.figcaption`
