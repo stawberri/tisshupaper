@@ -212,7 +212,21 @@ class Splash extends React.Component {
     return (
       <Wrapper innerRef={this.wrapperRef}>
         {!post && <Tisshupaper />}
-        {match && <Home post={post} onPostTarget={this.postTarget} />}
+        <Motion style={{ opacity: spring(+!!match) }}>
+          {({ opacity }) =>
+            opacity ? (
+              <Home
+                post={post}
+                onPostTarget={this.postTarget}
+                style={
+                  opacity < 1
+                    ? { opacity, transform: `translateZ(0)` }
+                    : undefined
+                }
+              />
+            ) : null
+          }
+        </Motion>
         {post && (
           <Motion
             onRest={this.disableSpring}

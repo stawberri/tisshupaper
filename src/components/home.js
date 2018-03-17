@@ -32,12 +32,12 @@ const Image = styled.div`
 
   box-sizing: border-box;
   border: 2px solid ${({ theme }) => theme.fg};
-  margin: 1em;
+  margin: 0 1em;
   padding: 0.25rem 0;
   margin-left: max(1em, env(safe-area-inset-left));
   margin-right: max(1em, env(safe-area-inset-right));
   border-radius: 0.5em;
-  box-shadow: 0 0.1em ${({ theme }) => theme.lightText};
+  box-shadow: 0 0.25em ${({ theme }) => theme.lightText};
 
   overflow: hidden;
 `
@@ -100,10 +100,10 @@ class Home extends React.Component {
   }
 
   render() {
-    const { danbooru, post } = this.props
+    const { danbooru, post, style } = this.props
 
     return (
-      <Wrapper>
+      <Wrapper style={style}>
         <StyledHeader to="/">Tisshupaper</StyledHeader>
         {post ? (
           <Image>

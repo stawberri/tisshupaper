@@ -9,7 +9,8 @@ const Wrapper = styled.nav`
   justify-content: center;
   align-items: center;
 
-  margin-bottom: 1rem;
+  margin: 1em 0;
+  margin-bottom: max(1em, env(safe-area-inset-bottom));
 
   font-size: 5vw;
 
