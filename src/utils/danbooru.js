@@ -27,6 +27,7 @@ export function readTagString(tagString, process) {
     .map(tag => {
       tag = tag.replace(/_/g, ' ')
       if (process) tag = process(tag)
+      tag = tag.trim()
       return tag
     })
     .filter(tag => {

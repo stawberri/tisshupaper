@@ -4,6 +4,7 @@ import { resized } from '../utils'
 import { generatePostTitle } from '../utils/danbooru'
 
 import Header from './header'
+import Menubar from './menubar'
 
 const Wrapper = styled.main`
   position: absolute;
@@ -12,10 +13,10 @@ const Wrapper = styled.main`
 
   display: grid;
   grid:
-    'header header' auto
-    'image caption' 1fr
-    'footer footer' auto / 1fr 30rem;
-  grid-gap: 1rem 2rem;
+    'header' auto
+    'image' 1fr
+    'caption' auto
+    'footer' auto;
 `
 
 const StyledHeader = styled(Header)`
@@ -24,19 +25,18 @@ const StyledHeader = styled(Header)`
 
 const Picture = styled.div`
   grid-area: image;
-
-  margin-left: 1rem;
 `
 
 const Caption = styled.div`
   grid-area: caption;
 
-  margin-right: 1rem;
+  margin: 1em;
 
-  font-size: 2rem;
+  font-size: 1.5rem;
+  text-align: center;
 `
 
-const Menu = styled.nav`
+const Menu = styled(Menubar)`
   grid-area: footer;
 `
 
