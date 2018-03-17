@@ -82,8 +82,8 @@ const Error = styled(Link)`
   text-decoration: none;
   color: ${({ theme }) => theme.bg};
 
-  background: black;
-  box-shadow: 0 0 2rem 2rem black;
+  background: ${({ theme }) => theme.darkText};
+  box-shadow: 0 0 2rem 2rem ${({ theme }) => theme.darkText};
 `
 
 class Splash extends React.Component {
@@ -319,7 +319,7 @@ class Splash extends React.Component {
                         : undefined
                     }
                   >
-                    {readTagString(post.tag_string_artist)}
+                    {readTagString(post.tag_string_artist) || '(unknown)'}
                   </Meta>
                 )
               }
