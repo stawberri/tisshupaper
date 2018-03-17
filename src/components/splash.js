@@ -10,8 +10,13 @@ import { spring, Motion, TransitionMotion } from 'react-motion'
 import Tisshupaper from './tisshupaper'
 import { Route, Link, matchPath } from 'react-router-dom'
 import Home from './home'
+import FontAwesome from '@fortawesome/react-fontawesome'
 
 const Wrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
   position: relative;
   overflow: hidden;
 
@@ -64,6 +69,20 @@ const HomeLink = styled(Link)`
 
   width: 100%;
   height: 100%;
+`
+
+const Error = styled(Link)`
+  position: absolute;
+
+  display: block;
+  padding: 1rem 1rem 0.5rem;
+
+  text-align: center;
+  text-decoration: none;
+  color: ${({ theme }) => theme.bg};
+
+  background: black;
+  box-shadow: 0 0 2rem 2rem black;
 `
 
 class Splash extends React.Component {
@@ -170,10 +189,18 @@ class Splash extends React.Component {
   }
 
   render() {
-    return <Route path="/home" children={this.renderMatch} />
+    return (
+      <Route path="/home" children={this.renderMatch}>
+        {props => (
+          <Route path="/" exact>
+            {({ match }) => this.renderMatch({ ...props, indexMatch: match })}
+          </Route>
+        )}
+      </Route>
+    )
   }
 
-  renderMatch = ({ match }) => {
+  renderMatch = ({ match, indexMatch, location }) => {
     const { imagePos, width, height, enableSpring } = this.state
     const springSettings = { stiffness: 200, damping: 19 }
 
@@ -222,6 +249,28 @@ class Splash extends React.Component {
           </Motion>
         )}
         {!match && <HomeLink to="/home" />}
+        <Motion style={{ opacity: spring(+(!indexMatch && !match)) }}>
+          {({ opacity }) =>
+            opacity ? (
+              <Error
+                to="/"
+                style={
+                  opacity < 1
+                    ? {
+                        opacity,
+                        pointerEvents: 'none',
+                        transform: 'translateZ(0)'
+                      }
+                    : undefined
+                }
+              >
+                <FontAwesome icon="exclamation-triangle" size="4x" />
+                <h1>404</h1>
+                <p>Page not found</p>
+              </Error>
+            ) : null
+          }
+        </Motion>
       </Wrapper>
     )
   }
