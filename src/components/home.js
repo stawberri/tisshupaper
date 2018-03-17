@@ -37,6 +37,8 @@ const Image = styled.div`
   margin-left: max(1em, env(safe-area-inset-left));
   margin-right: max(1em, env(safe-area-inset-right));
   border-radius: 0.5em;
+
+  background-color: ${({ theme }) => theme.lightHighlight};
   box-shadow: 0 0.25em ${({ theme }) => theme.lightText};
 
   overflow: hidden;
@@ -67,6 +69,8 @@ const Buttons = styled.div`
   margin: 0.5rem 0 0;
 
   a {
+    flex: auto;
+
     display: block;
     border-radius: 5em;
     padding: 0.1em;
@@ -74,6 +78,7 @@ const Buttons = styled.div`
 
     color: inherit;
     font-size: 1.5rem;
+    text-align: center;
   }
 `
 
