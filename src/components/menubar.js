@@ -35,7 +35,7 @@ const MainItem = Item.extend`
   font-size: 1.1em;
 
   color: ${({ theme }) => theme.bg};
-  background: ${({ theme }) => theme.darkText};
+  background: ${({ theme }) => theme.text};
   padding: 0.3em 2.5em;
 `
 

@@ -1,10 +1,15 @@
 import chroma from 'chroma-js'
 
 export default {
-  bg: chroma(0xffffff),
-  fg: chroma(0x444444),
   lightText: chroma(0x555555),
-  darkText: chroma(0x222222),
+  bg: chroma(0xffffff),
+
+  fg: chroma(0x444444),
   lightHighlight: chroma(0xdddddd),
-  darkHighlight: chroma(0xbbbbbb)
+
+  text: chroma(0x222222),
+  highlight: chroma(0xbbbbbb),
+
+  darkText: chroma(0x000000),
+  darkHighlight: chroma(0x999999)
 }

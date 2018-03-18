@@ -20,7 +20,6 @@ const Screen = styled.aside`
   justify-content: center;
   align-items: center;
 
-  color: ${({ theme }) => theme.fg};
   font-size: 10vw;
   font-weight: 200;
   background: ${({ theme }) => theme.bg};

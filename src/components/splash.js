@@ -46,8 +46,9 @@ const Meta = styled.figcaption`
   font-weight: 900;
   font-size: 2rem;
   color: ${({ theme }) => theme.bg};
-  text-shadow: 0 0 0.1em ${({ theme }) => theme.fg},
-    0 0 0.5em ${({ theme }) => theme.fg}, 0 0 1em ${({ theme }) => theme.fg};
+  text-shadow: 0 0 0.1em ${({ theme }) => theme.darkText},
+    0 0 0.5em ${({ theme }) => theme.darkText},
+    0 0 1em ${({ theme }) => theme.darkText};
 
   white-space: nowrap;
   overflow: hidden;
@@ -63,13 +64,6 @@ const Meta = styled.figcaption`
   @media (max-width: 25rem) {
     font-size: 1.5rem;
   }
-`
-
-const HomeLink = styled(Link)`
-  position: absolute;
-
-  width: 100%;
-  height: 100%;
 `
 
 const Error = styled(Link)`

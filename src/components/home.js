@@ -16,8 +16,6 @@ const Wrapper = styled.main`
 
   display: grid;
   grid-template-rows: auto 1fr auto;
-
-  color: ${({ theme }) => theme.fg};
 `
 
 const StyledHeader = styled(Header)`
