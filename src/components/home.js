@@ -41,8 +41,6 @@ const Image = styled.div`
   overflow: hidden;
 `
 
-const NoImage = styled.div``
-
 const Caption = styled.div`
   margin: 0 1em 0.5rem;
 
@@ -107,7 +105,7 @@ class Home extends React.Component {
         <Header to="/" noBorder>
           Tisshupaper
         </Header>
-        {post ? (
+        {post && (
           <Image>
             <Caption>{generatePostTitle(post)}</Caption>
             <Picture innerRef={this.pictureRef} />
@@ -134,8 +132,6 @@ class Home extends React.Component {
               </a>
             </Buttons>
           </Image>
-        ) : (
-          <NoImage />
         )}
         <Menubar />
       </Wrapper>
