@@ -2,7 +2,12 @@ import React from 'react'
 import { connect } from 'react-redux'
 import styled, { keyframes, css } from 'styled-components'
 import { resize } from '../utils/image'
-import { postSize, postColor, generatePostTitle } from '../utils/danbooru'
+import {
+  postSize,
+  postColor,
+  generatePostTitle,
+  getDanbooruInstance
+} from '../utils/danbooru'
 import { resized } from '../utils'
 import transparent from '../img/transparent.gif'
 import asap from 'asap'
@@ -311,7 +316,7 @@ class Image extends React.Component {
 
 export default connect(({ posts: { data }, config: { danbooru } }, { id }) => ({
   post: data[id],
-  danbooru
+  danbooru: getDanbooruInstance(danbooru)
 }))(Image)
 
 class LinkMaybe extends React.Component {

@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import { connect } from '../utils'
-import { readTagString } from '../utils/danbooru'
+import { readTagString, getDanbooruInstance } from '../utils/danbooru'
 import { resize, contained, coverage } from '../utils/image'
 import { resized } from '../utils'
 
@@ -343,7 +343,7 @@ export default connect(
   ({ posts: { data }, splash: { posts }, config: { danbooru } }) => ({
     data,
     posts,
-    danbooru
+    danbooru: getDanbooruInstance(danbooru)
   })
 )(Splash)
 

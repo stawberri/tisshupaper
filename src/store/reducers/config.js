@@ -1,8 +1,7 @@
 import actions from '../actions/config'
-import Danbooru from 'danbooru'
 
 const init = {
-  danbooru: new Danbooru(),
+  danbooru: [],
   splashTags: 'order:rank rating:safe'
 }
 

@@ -1,3 +1,4 @@
+import Danbooru from 'danbooru'
 import chroma from 'chroma-js'
 
 export function generatePostTitle(post) {
@@ -96,4 +97,16 @@ export function postSourceURL({ pixiv_id, source }) {
   } else {
     return source
   }
+}
+
+export function getDanbooruInstance(key) {
+  if (!getDanbooruInstance.data) getDanbooruInstance.data = new WeakMap()
+
+  if (!getDanbooruInstance.data.has(key)) {
+    const [url] = key
+    const value = new Danbooru(url)
+    getDanbooruInstance.data.set(key, value)
+  }
+
+  return getDanbooruInstance.data.get(key)
 }

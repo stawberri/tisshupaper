@@ -1,7 +1,11 @@
 import React from 'react'
 import styled from 'styled-components'
 import { resized } from '../utils'
-import { generatePostTitle, postSourceURL } from '../utils/danbooru'
+import {
+  generatePostTitle,
+  postSourceURL,
+  getDanbooruInstance
+} from '../utils/danbooru'
 import { connect } from 'react-redux'
 
 import Header from './header'
@@ -139,4 +143,6 @@ class Home extends React.Component {
   }
 }
 
-export default connect(({ config: { danbooru } }) => ({ danbooru }))(Home)
+export default connect(({ config: { danbooru } }) => ({
+  danbooru: getDanbooruInstance(danbooru)
+}))(Home)
