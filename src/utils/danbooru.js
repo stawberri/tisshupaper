@@ -89,3 +89,11 @@ export function isValidImage(post) {
 
   return true
 }
+
+export function postSourceURL({ pixiv_id, source }) {
+  if (pixiv_id) {
+    return `https://www.pixiv.net/member_illust.php?mode=medium&illust_id=${pixiv_id}`
+  } else {
+    return source
+  }
+}

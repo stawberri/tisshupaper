@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import { resized } from '../utils'
-import { generatePostTitle } from '../utils/danbooru'
+import { generatePostTitle, postSourceURL } from '../utils/danbooru'
 import { connect } from 'react-redux'
 
 import Header from './header'
@@ -130,12 +130,15 @@ class Home extends React.Component {
               >
                 <FontAwesome icon="download" />
               </a>
+              <a href={postSourceURL(post)} target="_blank" rel="noopener">
+                <FontAwesome icon="external-link-alt" />
+              </a>
               <a
                 href={danbooru.url(`/posts/${post.id}`)}
                 target="_blank"
                 rel="noopener"
               >
-                <FontAwesome icon="external-link-square-alt" />
+                <FontAwesome icon="link" />
               </a>
             </Buttons>
           </Image>
