@@ -1,4 +1,5 @@
-import { merge } from './posts'
+import { merge as postMerge } from './posts'
+import { merge as discoverMerge } from './discover'
 import { getDanbooruInstance } from '../../utils/danbooru'
 
 const actions = {
@@ -20,7 +21,8 @@ export function fetch(limit) {
     const danbooru = getDanbooruInstance(booru)
     const posts = await danbooru.posts({ tags, limit })
 
-    dispatch(merge(posts))
+    dispatch(postMerge(posts))
     dispatch(set(posts))
+    dispatch(discoverMerge(posts))
   }
 }

@@ -7,10 +7,11 @@ const init = {
 
 export default function(state = init, { type, payload }) {
   switch (type) {
-    case actions.set:
+    case actions.set: {
       const { key, value } = payload
       if (key in state) return { ...state, [key]: value }
       else return state
+    }
 
     default:
       return state
