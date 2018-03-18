@@ -17,6 +17,10 @@ const Wrapper = styled.nav`
   @media (min-width: 30em) {
     font-size: 1.5em;
   }
+
+  @media (max-width: 300px) {
+    font-size: 15px;
+  }
 `
 
 const Item = styled(Link)`

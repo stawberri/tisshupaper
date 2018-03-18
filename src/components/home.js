@@ -29,6 +29,7 @@ const Image = styled.div`
 
   display: flex;
   flex-flow: column;
+  align-items: center;
 
   box-sizing: border-box;
   border: 2px solid ${({ theme }) => theme.fg};
@@ -61,12 +62,16 @@ const Caption = styled.div`
 
 const Picture = styled.div`
   flex: 1;
+
+  width: 100%;
 `
 
 const Buttons = styled.div`
   display: flex;
   justify-content: center;
   margin: 0.5rem 0 0;
+  width: 100%;
+  max-width: 30rem;
 
   a {
     flex: auto;
