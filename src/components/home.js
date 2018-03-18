@@ -18,13 +18,7 @@ const Wrapper = styled.main`
   grid-template-rows: auto 1fr auto;
 `
 
-const StyledHeader = styled(Header)`
-  grid-row: 1 / 2;
-`
-
 const Image = styled.div`
-  grid-row: 2 / 3;
-
   display: flex;
   flex-flow: column;
   align-items: center;
@@ -43,9 +37,7 @@ const Image = styled.div`
   overflow: hidden;
 `
 
-const NoImage = styled.div`
-  grid-row: 2 / 3;
-`
+const NoImage = styled.div``
 
 const Caption = styled.div`
   margin: 0 1em 0.5rem;
@@ -85,10 +77,6 @@ const Buttons = styled.div`
   }
 `
 
-const Menu = styled(Menubar)`
-  grid-row: 3 / 4;
-`
-
 class Home extends React.Component {
   pictureRef = ref => {
     if (this.unobservePicture) this.unobservePicture()
@@ -112,7 +100,9 @@ class Home extends React.Component {
 
     return (
       <Wrapper style={style}>
-        <StyledHeader to="/">Tisshupaper</StyledHeader>
+        <Header to="/" noBorder>
+          Tisshupaper
+        </Header>
         {post ? (
           <Image>
             <Caption>{generatePostTitle(post)}</Caption>
@@ -143,7 +133,7 @@ class Home extends React.Component {
         ) : (
           <NoImage />
         )}
-        <Menu />
+        <Menubar />
       </Wrapper>
     )
   }

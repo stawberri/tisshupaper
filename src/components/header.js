@@ -16,6 +16,9 @@ const Wrapper = styled.header`
 
   font-size: 2rem;
 
+  ${({ noBorder, theme }) =>
+    noBorder || `border-bottom: 1px solid ${theme.highlight}`};
+
   @media (max-width: 30rem) {
     font-size: 1.5rem;
   }
@@ -47,10 +50,10 @@ const Right = styled.div`
 
 export default class Header extends React.Component {
   render() {
-    const { children, to, className } = this.props
+    const { children, to, className, noBorder } = this.props
 
     return (
-      <Wrapper className={className}>
+      <Wrapper className={className} noBorder={noBorder}>
         {false && <Right />}
         {to && (
           <Left to={to}>

@@ -7,6 +7,7 @@ import { Provider } from 'react-redux'
 import { ThemeProvider } from 'styled-components'
 import Splash from './splash'
 import { TisshupaperScreen } from './tisshupaper'
+import Discover from './discover'
 
 export default class App extends React.Component {
   render() {
@@ -16,6 +17,7 @@ export default class App extends React.Component {
           <ThemeProvider theme={theme}>
             <React.Fragment>
               <Switch>
+                <Route path="/discover" component={Discover} />
                 <Route component={Splash} />
               </Switch>
               <TisshupaperScreen />
