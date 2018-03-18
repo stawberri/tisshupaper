@@ -9,17 +9,21 @@ import asap from 'asap'
 import { uniqueKey } from '../utils'
 
 import { spring, Motion, TransitionMotion } from 'react-motion'
+import { Link } from 'react-router-dom'
 
+const WrapLink = styled(Link)``
+const WrapAnchor = styled.a``
 const Wrapper = styled.figure`
   position: relative;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
   overflow: hidden;
-
   margin: 0;
+
+  &,
+  & ${WrapLink}, & ${WrapAnchor} {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 `
 
 const scrollBg = keyframes`
@@ -205,7 +209,9 @@ class Image extends React.Component {
       post,
       danbooru,
       style: css,
-      spring: springOpts
+      spring: springOpts,
+      to,
+      href
     } = this.props
 
     const { preview_file_url, large_file_url, file_url } = post || {}
@@ -240,28 +246,30 @@ class Image extends React.Component {
 
     return (
       <Wrapper className={className} style={css} innerRef={this.wrapperRef}>
-        {post && (
-          <Motion
-            style={
-              springOpts
-                ? {
-                    width: spring(size.width, springOpts),
-                    height: spring(size.height, springOpts)
-                  }
-                : { width: size.width, height: size.height }
-            }
-          >
-            {style => (
-              <TransitionMotion
-                styles={styles}
-                willLeave={this.transitionLeave}
-              >
-                {this.renderTransition(style, size)}
-              </TransitionMotion>
-            )}
-          </Motion>
-        )}
-        {children}
+        <LinkMaybe to={to} href={href}>
+          {post && (
+            <Motion
+              style={
+                springOpts
+                  ? {
+                      width: spring(size.width, springOpts),
+                      height: spring(size.height, springOpts)
+                    }
+                  : { width: size.width, height: size.height }
+              }
+            >
+              {style => (
+                <TransitionMotion
+                  styles={styles}
+                  willLeave={this.transitionLeave}
+                >
+                  {this.renderTransition(style, size)}
+                </TransitionMotion>
+              )}
+            </Motion>
+          )}
+          {children}
+        </LinkMaybe>
       </Wrapper>
     )
   }
@@ -305,3 +313,13 @@ export default connect(({ posts: { data }, config: { danbooru } }, { id }) => ({
   post: data[id],
   danbooru
 }))(Image)
+
+class LinkMaybe extends React.Component {
+  render() {
+    const { children, to, href } = this.props
+
+    if (to) return <WrapLink to={to} children={children} />
+    if (href) return <WrapAnchor href={href} children={children} />
+    else return children || null
+  }
+}

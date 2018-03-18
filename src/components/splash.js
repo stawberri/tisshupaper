@@ -263,7 +263,6 @@ class Splash extends React.Component {
             )}
           </Motion>
         )}
-        {!match && <HomeLink to="/home" />}
         <Motion style={{ opacity: spring(+(!indexMatch && !match)) }}>
           {({ opacity }) =>
             opacity ? (
@@ -303,6 +302,7 @@ class Splash extends React.Component {
             onLoad={this.postLoad}
             spring={enableSpring && springSettings}
             cover={!match}
+            to={match ? '/' : '/home'}
             style={{
               ...(opacity < 1
                 ? { opacity, filter: `brightness(${3 - opacity * 2})` }
