@@ -6,19 +6,17 @@ const init = { posts: {} }
 export default function(state = init, { type, payload }) {
   switch (type) {
     case actions.merge: {
-      const { posts } = payload
-      const newState = { ...state }
-      for (const post of posts) {
-        if (isValidImage(post)) newState[post.id] = true
+      const posts = { ...state.posts }
+      for (const post of payload.posts) {
+        if (isValidImage(post)) posts[post.id] = true
       }
-      return newState
+      return { ...state, posts }
     }
 
     case actions.remove: {
-      const { ids } = payload
-      const newState = { ...state }
-      for (const id of ids) delete newState[id]
-      return newState
+      const posts = { ...state.posts }
+      for (const id of payload.ids) delete posts[id]
+      return { ...state, posts }
     }
 
     default:
