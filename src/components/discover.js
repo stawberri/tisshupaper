@@ -2,6 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 import { connect } from 'react-redux'
 import { getDanbooruInstance } from '../utils/danbooru'
+import { remove as removeDiscover } from '../store/actions/discover'
 
 import Header from './header'
 import Image from './image'
@@ -96,6 +97,15 @@ class Discover extends React.Component {
     if (post) this.setState({ post })
   }
 
+  removePost = () => {
+    const { post } = this.state
+    const { dispatch } = this.props
+    if (!post) return
+
+    dispatch(removeDiscover([post.id]))
+    this.setState({ post: null })
+  }
+
   render() {
     const { post } = this.state
 
@@ -107,10 +117,10 @@ class Discover extends React.Component {
             <Picture id={post.id} />
             <Info />
             <Actions>
-              <button>
+              <button onClick={this.removePost}>
                 <FontAwesome icon="trash" size="lg" />
               </button>
-              <button>
+              <button onClick={this.removePost}>
                 <FontAwesome icon="heart" size="lg" />
               </button>
             </Actions>
