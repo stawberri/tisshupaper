@@ -10,6 +10,7 @@ import FontAwesome from '@fortawesome/react-fontawesome'
 const Wrapper = styled.div`
   display: grid;
   grid-template-rows: auto 1fr;
+  grid-gap: 1em;
 
   height: 100%;
 `
@@ -19,13 +20,24 @@ const Main = styled.main`
   grid:
     'picture info' 1fr
     'actions actions' auto / 2fr 1fr;
+
+  @media (max-aspect-ratio: 1 / 1) {
+    grid:
+      'picture' 2fr
+      'info' auto
+      'actions' auto / auto;
+  }
 `
 
 const Picture = styled(Image)`
   box-sizing: border-box;
-  padding: 1em 1em 0;
+  padding: 0 1em;
   width: 100%;
   height: 100%;
+
+  @media (max-aspect-ratio: 1 / 1) {
+    padding: 0;
+  }
 `
 
 const Info = styled.div``

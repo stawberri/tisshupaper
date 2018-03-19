@@ -25,9 +25,11 @@ const Wrapper = styled.div`
 
 const MainImage = styled(Image)`
   position: absolute;
-  width: 100%;
-  height: 100%;
   overflow: visible;
+
+  width: 0;
+  height: 0;
+  opacity: 0;
 `
 
 const Meta = styled.figcaption`
@@ -284,7 +286,7 @@ class Splash extends React.Component {
   }
 
   renderTransition = (match, imagePos) => styles => {
-    const { width, height, enableSpring } = this.state
+    const { enableSpring } = this.state
     const springSettings = { stiffness: 200, damping: 19 }
 
     return (
@@ -298,19 +300,13 @@ class Splash extends React.Component {
             cover={!match}
             to={match ? '/' : '/home'}
             style={{
+              opacity,
+              top: imagePos.top,
+              left: imagePos.left,
+              height: imagePos.height,
+              width: imagePos.width,
               ...(opacity < 1
-                ? { opacity, filter: `brightness(${3 - opacity * 2})` }
-                : {}),
-              ...(imagePos.top ||
-              imagePos.left ||
-              imagePos.width !== width ||
-              imagePos.height !== height
-                ? {
-                    top: imagePos.top,
-                    left: imagePos.left,
-                    height: imagePos.height,
-                    width: imagePos.width
-                  }
+                ? { filter: `brightness(${3 - opacity * 2})` }
                 : {}),
               ...(enableSpring || opacity < 1
                 ? { transform: 'translateZ(0)' }
