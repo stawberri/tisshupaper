@@ -31,10 +31,7 @@ const Mid = styled.div`
   font-weight: 500;
 `
 
-const Left = styled(Link)`
-  grid-column: 1 / 2;
-  justify-self: start;
-
+const IconLink = styled(Link)`
   padding: 0 0.7em;
 
   font-size: 0.8em;
@@ -43,14 +40,19 @@ const Left = styled(Link)`
   text-decoration: none;
 `
 
-const Right = styled.div`
+const Left = IconLink.extend`
+  grid-column: 1 / 2;
+  justify-self: start;
+`
+
+const Right = IconLink.extend`
   grid-column: 3 / 4;
   justify-self: end;
 `
 
 export default class Header extends React.Component {
   render() {
-    const { children, to, className, noBorder } = this.props
+    const { children, to, className, noBorder, aux, icon } = this.props
 
     return (
       <Wrapper className={className} noBorder={noBorder}>
@@ -61,6 +63,12 @@ export default class Header extends React.Component {
           </Left>
         )}
         <Mid children={children} />
+        {aux &&
+          icon && (
+            <Right to={aux}>
+              <FontAwesome icon={icon} />
+            </Right>
+          )}
       </Wrapper>
     )
   }

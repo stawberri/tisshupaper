@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import { connect } from 'react-redux'
-import { getDanbooruInstance } from '../utils/danbooru'
+import { getDanbooruInstance, postSourceURL } from '../utils/danbooru'
 import { remove as removeDiscover } from '../store/actions/discover'
 
 import Header from './header'
@@ -43,6 +43,11 @@ const Picture = styled(Image)`
 
 const Info = styled.div`
   margin: 1em;
+
+  h1,
+  p {
+    margin-top: 0;
+  }
 `
 
 const Actions = styled.div`
@@ -63,10 +68,11 @@ const Actions = styled.div`
 
     color: inherit;
     margin: 0 0.5em;
+  }
 
-    &:active {
-      outline: none;
-    }
+  a {
+    color: inherit;
+    margin: 0 0.5em;
   }
 `
 
@@ -110,7 +116,7 @@ class Discover extends React.Component {
 
   render() {
     const { post } = this.state
-    const { posts } = this.props
+    const { danbooru } = this.props
 
     return (
       <Wrapper>
@@ -119,19 +125,55 @@ class Discover extends React.Component {
           <Main>
             <Picture id={post.id} />
             <Info>
-              <p>
-                <FontAwesome icon="trash" size="lg" /> isn't permanent and
-                images come back after you refresh.
-              </p>
-              <p>{Object.keys(posts).length} pictures remaining.</p>
+              <h1>Artists</h1>
+              <ul>
+                {post.tag_string_artist &&
+                  post.tag_string_artist.split(' ').map(tag => {
+                    tag = tag.replace(/_/g, ' ')
+                    return <li key={tag}>{tag}</li>
+                  })}
+              </ul>
+              <h1>Materials</h1>
+              <ul>
+                {post.tag_string_copyright &&
+                  post.tag_string_copyright.split(' ').map(tag => {
+                    tag = tag.replace(/_/g, ' ')
+                    return <li key={tag}>{tag}</li>
+                  })}
+              </ul>
+              <h1>Characters</h1>
+              <ul>
+                {post.tag_string_character &&
+                  post.tag_string_character.split(' ').map(tag => {
+                    tag = tag.replace(/_/g, ' ')
+                    return <li key={tag}>{tag}</li>
+                  })}
+              </ul>
             </Info>
             <Actions>
-              <button onClick={this.removePost}>
-                <FontAwesome icon="trash" size="lg" />
-              </button>
+              <a
+                href={danbooru.url(post.file_url)}
+                target="_blank"
+                rel="noopener"
+              >
+                <FontAwesome icon="download" />
+              </a>
               <button style={{ opacity: 0.5, pointerEvents: 'none' }}>
-                <FontAwesome icon="heart" size="lg" />
+                <FontAwesome icon="heart" />
               </button>
+              <button onClick={this.removePost}>
+                <FontAwesome icon="sync" size="lg" />
+              </button>
+              <a href={postSourceURL(post)} target="_blank" rel="noopener">
+                <FontAwesome icon="external-link-alt" />
+              </a>
+              <a
+                href={danbooru.url(`/posts/${post.id}`)}
+                target="_blank"
+                rel="noopener"
+              >
+                <FontAwesome icon="link" />
+              </a>
             </Actions>
           </Main>
         )}
