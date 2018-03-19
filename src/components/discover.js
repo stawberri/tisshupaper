@@ -41,7 +41,9 @@ const Picture = styled(Image)`
   }
 `
 
-const Info = styled.div``
+const Info = styled.div`
+  margin: 1em;
+`
 
 const Actions = styled.div`
   grid-area: actions;
@@ -115,12 +117,27 @@ class Discover extends React.Component {
         {post && (
           <Main>
             <Picture id={post.id} />
-            <Info />
+            <Info>
+              <p>
+                Hi! I haven't gotten around to implementing{' '}
+                <FontAwesome icon="heart" size="lg" /> yet. Sorry!
+              </p>
+              <p>
+                Fortunately, <FontAwesome icon="trash" size="lg" /> doesn't
+                permanently delete anything, so you can use it to load another
+                picture for now. Pictures that you dismiss this way will come
+                back after you refresh!
+              </p>
+              <p>
+                I haven't added a loading mechanism for more pictures, so you
+                can only flip through 200 pictures before you run out.
+              </p>
+            </Info>
             <Actions>
               <button onClick={this.removePost}>
                 <FontAwesome icon="trash" size="lg" />
               </button>
-              <button onClick={this.removePost}>
+              <button style={{ opacity: 0.5, pointerEvents: 'none' }}>
                 <FontAwesome icon="heart" size="lg" />
               </button>
             </Actions>
