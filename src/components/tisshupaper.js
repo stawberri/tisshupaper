@@ -6,7 +6,7 @@ import { spring, Motion } from 'react-motion'
 let registrations = 0
 let registrationListener
 
-const Wrapper = styled.div`
+const Screen = styled.aside`
   position: fixed;
   top: 0;
   left: 0;
@@ -20,12 +20,16 @@ const Wrapper = styled.div`
   justify-content: center;
   align-items: center;
 
-  color: #444;
   font-size: 10vw;
-  background: #fff;
+  font-weight: 200;
+  background: ${({ theme }) => theme.bg};
 
   @media (min-width: 1000px) {
     font-size: 100px;
+  }
+
+  &::before {
+    content: 'Tisshupaper';
   }
 `
 
@@ -53,35 +57,47 @@ export class TisshupaperScreen extends React.Component {
     this.setState({ registrations })
   }
 
-  renderMotion(style) {
-    if (!style.opacity) return null
-    return <Wrapper style={style}>Tisshupaper</Wrapper>
-  }
-
   render() {
     const { registrations } = this.state
     const style = {
       opacity: spring(+!!(registrations > 0), { stiffness: 90, damping: 20 })
     }
 
-    return <Motion style={style}>{this.renderMotion}</Motion>
+    return (
+      <Motion style={style}>
+        {({ opacity }) =>
+          opacity ? (
+            <Screen
+              style={
+                opacity < 1
+                  ? {
+                      opacity,
+                      pointerEvents: 'none',
+                      transform: 'translateZ(0)'
+                    }
+                  : undefined
+              }
+            />
+          ) : null
+        }
+      </Motion>
+    )
   }
 }
 
 function register(num) {
+  if (!num) return
   registrations += num
   if (registrationListener) registrationListener(registrations)
 }
 
 export default class RegisterTisshupaper extends React.Component {
-  constructor(props) {
-    super(props)
-    register(props.holds)
+  componentDidMount() {
+    register(this.props.holds)
   }
 
-  componentWillReceiveProps(props) {
-    const difference = props.holds - this.props.holds
-    if (difference) register(difference)
+  componentDidUpdate(prevProps) {
+    register(this.props.holds - prevProps.holds)
   }
 
   componentWillUnmount() {
@@ -89,8 +105,7 @@ export default class RegisterTisshupaper extends React.Component {
   }
 
   render() {
-    const { children = null } = this.props
-    return children
+    return this.props.children || null
   }
 
   static defaultProps = { holds: 1 }

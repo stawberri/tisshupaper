@@ -1,25 +1,33 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import styled, { keyframes, css } from 'styled-components'
-import { resize } from 'utils/image'
-import { postSize, postColor } from 'utils/danbooru'
-import resized from 'utils/resized'
-import transparent from 'img/transparent.gif'
-import asap from 'asap'
-import uniqueKey from 'utils/unique-key'
+import { resize } from '../utils/image'
+import {
+  postSize,
+  postColor,
+  generatePostTitle,
+  getDanbooruInstance
+} from '../utils/danbooru'
+import { resized } from '../utils'
+import transparent from '../img/transparent.gif'
+import { uniqueKey } from '../utils'
 
-import { spring, TransitionMotion } from 'react-motion'
+import { spring, Motion, TransitionMotion } from 'react-motion'
+import { Link } from 'react-router-dom'
 
-const Wrapper = styled.div`
+const WrapLink = styled(Link)``
+const WrapAnchor = styled.a``
+const Wrapper = styled.figure`
   position: relative;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  transform: translate3d(0, 0, 0);
-
   overflow: hidden;
+  margin: 0;
+
+  &,
+  & ${WrapLink}, & ${WrapAnchor} {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 `
 
 const scrollBg = keyframes`
@@ -37,6 +45,7 @@ const Picture = styled.img`
     css`
       background: 0 0 / 2rem 2rem;
       animation: ${scrollBg} 1s linear infinite;
+      transform: translateZ(0);
     `}};
 `
 
@@ -60,14 +69,31 @@ class Image extends React.Component {
     this.preloaders.forEach(img =>
       img.addEventListener('load', this.preloaderLoaded)
     )
+
+    this.beginPreload(true)
   }
 
-  componentWillReceiveProps(props) {
-    let oldProps = this.props
-    const { post, size } = props
+  componentDidUpdate(prevProps, prevState) {
+    const { post, size, onLoad } = this.props
+    const { width, height, loaded } = this.state
 
-    if (oldProps.post.id !== post.id) asap(() => this.beginPreload(true))
-    else if (oldProps.size !== size) asap(() => this.beginPreload())
+    if (post && (!prevProps.post || post.id !== prevProps.post.id)) {
+      this.beginPreload(true)
+    } else if (
+      size !== prevProps.size ||
+      ((width || height) &&
+        (width !== prevState.width || height !== prevState.height)) ||
+      (loaded !== prevState.loaded && !loaded.length)
+    ) {
+      this.beginPreload()
+    } else if (loaded !== prevState.loaded && onLoad) {
+      const target = this.getTarget()
+
+      for (let size = 0; size < 3; size++) {
+        if (loaded[size] && !prevState.loaded[size])
+          onLoad({ ref: this, id: post.id, size, target })
+      }
+    }
   }
 
   componentWillUnmount() {
@@ -83,11 +109,8 @@ class Image extends React.Component {
     if (!post) return
 
     const target = this.getTarget()
-    if (newPost) {
-      await new Promise(done =>
-        this.setState({ loaded: [], key: uniqueKey() }, done)
-      )
-    } else if (this.state.loaded[target]) return
+    if (newPost) return this.setState({ loaded: [], key: uniqueKey() })
+    else if (this.state.loaded[target]) return
 
     const { loaded } = this.state
     const imgOk = loaded[2]
@@ -108,9 +131,7 @@ class Image extends React.Component {
   }
 
   preloaderLoaded = async event => {
-    const target = this.getTarget()
     let { loaded } = this.state
-    const { onLoad, post } = this.props
     const { preloaders } = this
 
     const size = preloaders.findIndex(preloader => event.target === preloader)
@@ -119,16 +140,8 @@ class Image extends React.Component {
     if (!loaded[size]) {
       loaded = loaded.slice()
       loaded[size] = true
-      await new Promise(done => this.setState({ loaded }, done))
+      this.setState({ loaded })
     }
-
-    if (onLoad)
-      onLoad({
-        ref: this,
-        id: post.id,
-        size,
-        target
-      })
   }
 
   wrapperRef = ref => {
@@ -154,8 +167,7 @@ class Image extends React.Component {
   }
 
   async setSize(width, height) {
-    await new Promise(done => this.setState({ width, height }, done))
-    if (width || height) this.beginPreload()
+    this.setState({ width, height })
   }
 
   getSize() {
@@ -195,39 +207,23 @@ class Image extends React.Component {
     return { opacity: spring(0, { stiffness: 200, damping: 30 }) }
   }
 
-  renderTransition = styles => {
-    const children = styles.reverse().map(({ key, data, style }) => {
-      const { post, src, size } = data
-      const { opacity } = style
-      const sizes = this.getSize()
-
-      const css = { ...sizes, opacity }
-
-      if (size === -1) {
-        const color = postColor(post)
-        const color1 = color.brighten(1)
-        const color2 = color.brighten(1.2)
-        css.backgroundImage = `
-        repeating-linear-gradient(
-          45deg,
-          ${color1} 25%, ${color2} 25%,
-          ${color2} 50%, ${color1} 50%,
-          ${color1} 75%, ${color2} 75%
-        )
-        `
-      }
-
-      return <Picture key={key} src={src} style={css} postSize={size} />
-    })
-
-    return <React.Fragment>{children}</React.Fragment>
-  }
-
   render() {
     const { loaded, key } = this.state
-    const { className, post, danbooru, style: css } = this.props
+
+    const {
+      children,
+      className,
+      post,
+      danbooru,
+      style: css,
+      spring: springOpts,
+      to,
+      href
+    } = this.props
+
     const { preview_file_url, large_file_url, file_url } = post || {}
 
+    const size = this.getSize()
     const target = this.getTarget()
 
     const styles = []
@@ -257,17 +253,80 @@ class Image extends React.Component {
 
     return (
       <Wrapper className={className} style={css} innerRef={this.wrapperRef}>
-        {post && (
-          <TransitionMotion styles={styles} willLeave={this.transitionLeave}>
-            {this.renderTransition}
-          </TransitionMotion>
-        )}
+        <LinkMaybe to={to} href={href}>
+          {post && (
+            <Motion
+              style={
+                springOpts
+                  ? {
+                      width: spring(size.width, springOpts),
+                      height: spring(size.height, springOpts)
+                    }
+                  : { width: size.width, height: size.height }
+              }
+            >
+              {style => (
+                <TransitionMotion
+                  styles={styles}
+                  willLeave={this.transitionLeave}
+                >
+                  {this.renderTransition(style, size)}
+                </TransitionMotion>
+              )}
+            </Motion>
+          )}
+          {children}
+        </LinkMaybe>
       </Wrapper>
     )
+  }
+
+  renderTransition = (sizes, { width }) => styles => {
+    const children = styles.reverse().map(({ key, data, style }) => {
+      const { post, src, size } = data
+      const { opacity } = style
+
+      const css = { ...sizes, opacity }
+      if (opacity !== 1 || sizes.width !== width) {
+        css.transform = 'translateZ(0)'
+      }
+
+      if (size === -1) {
+        const color = postColor(post)
+        const color1 = color.brighten(1)
+        const color2 = color.brighten(1.2)
+        css.backgroundImage = `
+        repeating-linear-gradient(
+          45deg,
+          ${color1} 25%, ${color2} 25%,
+          ${color2} 50%, ${color1} 50%,
+          ${color1} 75%, ${color2} 75%
+        )
+        `
+      }
+
+      const alt = generatePostTitle(post)
+
+      return (
+        <Picture key={key} src={src} alt={alt} style={css} postSize={size} />
+      )
+    })
+
+    return <React.Fragment children={children} />
   }
 }
 
 export default connect(({ posts: { data }, config: { danbooru } }, { id }) => ({
   post: data[id],
-  danbooru
+  danbooru: getDanbooruInstance(danbooru)
 }))(Image)
+
+class LinkMaybe extends React.Component {
+  render() {
+    const { children, to, href } = this.props
+
+    if (to) return <WrapLink to={to} children={children} />
+    if (href) return <WrapAnchor href={href} children={children} />
+    else return children || null
+  }
+}

@@ -1,4 +1,6 @@
-import { merge } from './posts'
+import { merge as postMerge } from './posts'
+import { merge as discoverMerge } from './discover'
+import { getDanbooruInstance } from '../../utils/danbooru'
 
 const actions = {
   set: 'splash.set'
@@ -6,19 +8,21 @@ const actions = {
 
 export default actions
 
-export function set(ids) {
+export function set(posts) {
   return {
     type: actions.set,
-    payload: { ids }
+    payload: { posts }
   }
 }
 
 export function fetch(limit) {
   return async (dispatch, getState) => {
-    const { config: { danbooru, splashTags: tags } } = getState()
+    const { config: { danbooru: booru, splashTags: tags } } = getState()
+    const danbooru = getDanbooruInstance(booru)
     const posts = await danbooru.posts({ tags, limit })
 
-    dispatch(merge(posts))
-    dispatch(set(posts.map(({ id }) => id)))
+    dispatch(postMerge(posts))
+    dispatch(set(posts))
+    dispatch(discoverMerge(posts))
   }
 }

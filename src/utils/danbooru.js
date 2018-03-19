@@ -1,11 +1,12 @@
+import Danbooru from 'danbooru'
 import chroma from 'chroma-js'
 
 export function generatePostTitle(post) {
   let title = ''
 
-  const artists = format(post.tag_string_artist)
-  const copyrights = format(post.tag_string_copyright)
-  const characters = format(post.tag_string_character, tag =>
+  const artists = readTagString(post.tag_string_artist)
+  const copyrights = readTagString(post.tag_string_copyright)
+  const characters = readTagString(post.tag_string_character, tag =>
     tag.replace(/\([^)]*\)/g, '')
   )
 
@@ -18,37 +19,38 @@ export function generatePostTitle(post) {
 
   if (artists) title += ` drawn by ${artists}`
   return title.trim()
+}
 
-  function format(tagString, process) {
-    const dup = []
-    const list = tagString
-      .split(' ')
-      .map(tag => {
-        tag = tag.replace(/_/g, ' ')
-        if (process) tag = process(tag)
-        return tag
-      })
-      .filter(tag => {
-        if (~dup.indexOf(tag)) return false
-        return dup.push(tag)
-      })
+export function readTagString(tagString, process) {
+  const dup = []
+  const list = tagString
+    .split(' ')
+    .map(tag => {
+      tag = tag.replace(/_/g, ' ')
+      if (process) tag = process(tag)
+      tag = tag.trim()
+      return tag
+    })
+    .filter(tag => {
+      if (~dup.indexOf(tag)) return false
+      return dup.push(tag)
+    })
 
-    switch (list.length) {
-      case 0:
-        return ''
-      case 1:
-        return list[0]
-      case 2:
-        return `${list[0]} and ${list[1]}`
-      default:
-        if (list.length > 5) {
-          const visible = list.slice(0, 5)
-          return `${visible.join(', ')}, and others`
-        } else {
-          const last = list.pop()
-          return `${list.join(', ')}, and ${last}`
-        }
-    }
+  switch (list.length) {
+    case 0:
+      return ''
+    case 1:
+      return list[0]
+    case 2:
+      return `${list[0]} and ${list[1]}`
+    default:
+      if (list.length > 5) {
+        const visible = list.slice(0, 5)
+        return `${visible.join(', ')}, and others`
+      } else {
+        const last = list.pop()
+        return `${list.join(', ')}, and ${last}`
+      }
   }
 }
 
@@ -87,4 +89,24 @@ export function isValidImage(post) {
   if (post.file_ext === 'zip') return false
 
   return true
+}
+
+export function postSourceURL({ pixiv_id, source }) {
+  if (pixiv_id) {
+    return `https://www.pixiv.net/member_illust.php?mode=medium&illust_id=${pixiv_id}`
+  } else {
+    return source
+  }
+}
+
+export function getDanbooruInstance(key) {
+  if (!getDanbooruInstance.data) getDanbooruInstance.data = new WeakMap()
+
+  if (!getDanbooruInstance.data.has(key)) {
+    const [url] = key
+    const value = new Danbooru(url)
+    getDanbooruInstance.data.set(key, value)
+  }
+
+  return getDanbooruInstance.data.get(key)
 }

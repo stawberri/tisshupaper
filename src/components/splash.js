@@ -1,68 +1,85 @@
 import React from 'react'
 import styled from 'styled-components'
-import { connect } from 'react-redux'
-import { generatePostTitle, isValidImage } from 'utils/danbooru'
-import { resize, contained, coverage } from 'utils/image'
-import resized from 'utils/resized'
+import { connect } from '../utils'
+import { readTagString, getDanbooruInstance } from '../utils/danbooru'
+import { resize, contained, coverage } from '../utils/image'
+import { resized } from '../utils'
 
 import Image from './image'
-import ImageFader from './image-fader'
-import { spring, Motion } from 'react-motion'
+import { spring, Motion, TransitionMotion } from 'react-motion'
 import Tisshupaper from './tisshupaper'
+import { Route, Link, matchPath } from 'react-router-dom'
+import Home from './home'
+import FontAwesome from '@fortawesome/react-fontawesome'
 
 const Wrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
   position: relative;
   overflow: hidden;
 
   height: 100%;
 `
 
-const blurStrength = 'calc((5vw + 5vh) / 2)'
-const BackgroundImage = styled(Image).attrs({ cover: true })`
+const MainImage = styled(Image)`
   position: absolute;
-  top: calc(-2 * ${blurStrength});
-  left: calc(-2 * ${blurStrength});
-  width: calc(4 * ${blurStrength} + 100vw);
-  height: calc(4 * ${blurStrength} + 100vh);
+  overflow: visible;
 
-  filter: blur(${blurStrength});
-
-  z-index: -1;
-  pointer-events: none;
+  width: 0;
+  height: 0;
+  opacity: 0;
 `
 
-const MainImage = styled(Image).attrs({ cover: true })`
+const Meta = styled.figcaption`
   position: absolute;
-  top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-`
-
-const Meta = styled.p`
-  position: absolute;
   bottom: 0;
 
   box-sizing: border-box;
-  height: 2rem;
   max-width: 100%;
+  margin: 0;
+  padding: 1em 1.3em;
+  padding-left: max(1.3em, env(safe-area-inset-left));
+  padding-right: max(1.3em, env(safe-area-inset-right));
+  padding-bottom: max(1em, env(safe-area-inset-bottom));
 
-  padding: 0 1rem;
-  padding-left: max(1rem, env(safe-area-inset-left));
-  padding-right: max(1rem, env(safe-area-inset-right));
-  margin: 0 0 1rem;
-  margin-bottom: max(1rem, env(safe-area-inset-bottom));
+  font-weight: 900;
+  font-size: 2rem;
+  color: ${({ theme }) => theme.bg};
+  text-shadow: 0 0 0.1em ${({ theme }) => theme.darkText},
+    0 0 0.5em ${({ theme }) => theme.darkText},
+    0 0 1em ${({ theme }) => theme.darkText};
 
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: flex-end;
-
-  background: rgba(255, 255, 255, 0.69);
   white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 
-  backdrop-filter: blur(0.3rem);
+  &::before {
+    content: 'illust. ';
+    opacity: 0.95;
+    font-size: 0.85em;
+    font-weight: 600;
+  }
+
+  @media (max-width: 25rem) {
+    font-size: 1.5rem;
+  }
+`
+
+const Error = styled(Link)`
+  position: absolute;
+
+  display: block;
+  padding: 1rem 1rem 0.5rem;
+
+  text-align: center;
+  text-decoration: none;
+  color: ${({ theme }) => theme.bg};
+
+  background: ${({ theme }) => theme.darkText};
+  box-shadow: 0 0 2rem 2rem ${({ theme }) => theme.darkText};
 `
 
 class Splash extends React.Component {
@@ -72,22 +89,33 @@ class Splash extends React.Component {
     this.state = {
       width: 0,
       height: 0,
-      currentId: 0,
-      changed: false,
-      now: 0,
-      timeOffset: Math.floor(Math.random() * 86400000)
+      imagePos: null,
+      enableSpring: false
     }
   }
 
   componentDidMount() {
-    this.timeInterval = setInterval(
-      () => this.setState({ now: Date.now() }),
-      60000
-    )
+    const { location, history } = this.props
+
+    let lastMatch = !!matchPath(location.pathname, { path: '/home' })
+    this.listenHistory = history.listen(location => {
+      if (!matchPath(location.pathname, { path: '/home' }) === lastMatch) {
+        this.setState({ enableSpring: true })
+        lastMatch = !lastMatch
+      }
+    })
   }
 
   componentWillUnmount() {
-    clearInterval(this.timeInterval)
+    this.listenHistory()
+  }
+
+  enableSpring = () => {
+    this.setState({ enableSpring: true })
+  }
+
+  disableSpring = () => {
+    this.setState({ enableSpring: false })
   }
 
   updateImageSize(width, height) {
@@ -96,6 +124,8 @@ class Splash extends React.Component {
 
   wrapperRef = ref => {
     if (this.unobserveWrapper) this.unobserveWrapper()
+    if (!ref) return
+
     this.unobserveWrapper = resized(ref, entry => {
       const { width, height } = entry.contentRect
       this.updateImageSize(width, height)
@@ -105,85 +135,202 @@ class Splash extends React.Component {
     this.updateImageSize(width, height)
   }
 
-  postLoad = async ({ id }) => {
-    if (this.state.currentId === id) return
-
-    await new Promise(done =>
-      this.setState({ currentId: id, changed: true }, done)
-    )
-
-    this.setState({ changed: false })
+  postTarget = imagePos => {
+    this.setState({ imagePos })
   }
 
   pickPost(props = this.props) {
-    const { width, height, now, timeOffset } = this.state
+    const { width, height } = this.state
     const { data, posts } = props
     if (!posts.length) return
 
     const size = { width, height }
 
     const maxScore = findMaxScore(posts, data)
-    const sortedPosts = posts
-      .filter(id => isValidImage(data[id]))
-      .map((id, index) => {
-        let score = 0
-        const post = data[id]
-        const postSize = { width: post.image_width, height: post.image_height }
-        const resized = resize(postSize, size, true)
 
-        const indexScore = 1 - index / posts.length
-        const scoreScore = post.score / maxScore
-        const aspectRatioScore = coverage(postSize, size)
-        const croppedOffScore = coverage(size, resized)
+    let bestPost
+    let bestScore = -Infinity
 
-        score += indexScore
-        score += scoreScore
-        score += aspectRatioScore * 6
-        score += croppedOffScore * 2
-        if (contained(size, postSize)) score += croppedOffScore * 4
+    posts.forEach((id, index) => {
+      let score = 0
+      const post = data[id]
+      const postSize = { width: post.image_width, height: post.image_height }
+      const resized = resize(postSize, size, true)
 
-        return [score, post]
-      })
-      .sort((a, b) => b[0] - a[0])
+      const indexScore = 1 - index / posts.length
+      const scoreScore = post.score / maxScore
+      const aspectRatioScore = coverage(postSize, size)
+      const croppedOffScore = coverage(size, resized)
 
-    const select =
-      Math.floor((now + timeOffset) / 60000) % Math.min(15, posts.length)
+      score += indexScore
+      score += scoreScore
+      score += aspectRatioScore * 6
+      score += croppedOffScore * 2
+      if (contained(size, postSize)) score += croppedOffScore * 4
 
-    return sortedPosts[select][1]
+      if (score > bestScore) {
+        bestPost = post
+        bestScore = score
+      }
+    })
+
+    return bestPost
+  }
+
+  transitionEnter() {
+    return { opacity: 0 }
+  }
+
+  transitionLeave() {
+    return { opacity: spring(0) }
   }
 
   render() {
-    const { currentId, changed } = this.state
-    const { data } = this.props
+    return (
+      <Route path="/home" children={this.renderMatch}>
+        {props => (
+          <Route path="/" exact>
+            {({ match }) => this.renderMatch({ ...props, indexMatch: match })}
+          </Route>
+        )}
+      </Route>
+    )
+  }
+
+  renderMatch = ({ match, indexMatch, location }) => {
+    const { imagePos, width, height, enableSpring } = this.state
+    const springSettings = { stiffness: 200, damping: 19 }
 
     const post = this.pickPost()
-    const current = data[currentId]
-
-    const metaStyle = {
-      translateX: changed ? -100 : spring(0)
-    }
+    const conditionalSpring = value =>
+      enableSpring ? spring(value, springSettings) : value
 
     return (
       <Wrapper innerRef={this.wrapperRef}>
-        {!current && <Tisshupaper />}
+        {!post && <Tisshupaper />}
+        <Motion style={{ opacity: spring(+!!match) }}>
+          {({ opacity }) =>
+            opacity ? (
+              <Home
+                post={post}
+                onPostTarget={this.postTarget}
+                style={
+                  opacity < 1
+                    ? { opacity, transform: `translateZ(0)` }
+                    : undefined
+                }
+              />
+            ) : null
+          }
+        </Motion>
         {post && (
-          <React.Fragment>
-            {false && <BackgroundImage id={current.id} size={0} />}
-            <ImageFader classNames="" timeout={500} onLoad={this.postLoad}>
-              <MainImage id={post.id} />
-            </ImageFader>
-            {current && (
-              <Motion style={metaStyle}>
-                {({ translateX }) => (
-                  <Meta style={{ transform: `translateX(${translateX}%)` }}>
-                    {generatePostTitle(current)}
-                  </Meta>
-                )}
-              </Motion>
+          <Motion
+            onRest={this.disableSpring}
+            style={
+              match && imagePos
+                ? {
+                    top: conditionalSpring(imagePos.top),
+                    height: conditionalSpring(imagePos.height),
+                    left: conditionalSpring(imagePos.left),
+                    width: conditionalSpring(imagePos.width)
+                  }
+                : {
+                    top: conditionalSpring(0),
+                    height: conditionalSpring(height),
+                    left: conditionalSpring(0),
+                    width: conditionalSpring(width)
+                  }
+            }
+          >
+            {imagePos => (
+              <TransitionMotion
+                styles={[
+                  {
+                    key: `${post.id}`,
+                    data: { post },
+                    style: { opacity: spring(1) }
+                  }
+                ]}
+                willEnter={this.transitionEnter}
+                willLeave={this.transitionLeave}
+              >
+                {this.renderTransition(match, imagePos)}
+              </TransitionMotion>
             )}
-          </React.Fragment>
+          </Motion>
         )}
+        <Motion style={{ opacity: spring(+(!indexMatch && !match)) }}>
+          {({ opacity }) =>
+            opacity ? (
+              <Error
+                to="/"
+                style={
+                  opacity < 1
+                    ? {
+                        opacity,
+                        pointerEvents: 'none',
+                        transform: 'translateZ(0)'
+                      }
+                    : undefined
+                }
+              >
+                <FontAwesome icon="exclamation-triangle" size="4x" />
+                <h1>404</h1>
+                <p>Page not found</p>
+              </Error>
+            ) : null
+          }
+        </Motion>
       </Wrapper>
+    )
+  }
+
+  renderTransition = (match, imagePos) => styles => {
+    const { enableSpring } = this.state
+    const springSettings = { stiffness: 200, damping: 19 }
+
+    return (
+      <React.Fragment>
+        {styles.map(({ key, data: { post }, style: { opacity } }) => (
+          <MainImage
+            key={key}
+            id={post.id}
+            onLoad={this.postLoad}
+            spring={enableSpring && springSettings}
+            cover={!match}
+            to={match ? '/' : '/home'}
+            style={{
+              opacity,
+              top: imagePos.top,
+              left: imagePos.left,
+              height: imagePos.height,
+              width: imagePos.width,
+              ...(opacity < 1
+                ? { filter: `brightness(${3 - opacity * 2})` }
+                : {}),
+              ...(enableSpring || opacity < 1
+                ? { transform: 'translateZ(0)' }
+                : {})
+            }}
+          >
+            <Motion style={{ opacity: spring(+!match, springSettings) }}>
+              {({ opacity }) =>
+                opacity > 0 && (
+                  <Meta
+                    style={
+                      opacity < 1
+                        ? { opacity, transform: `translateZ(0)` }
+                        : undefined
+                    }
+                  >
+                    {readTagString(post.tag_string_artist) || '(unknown)'}
+                  </Meta>
+                )
+              }
+            </Motion>
+          </MainImage>
+        ))}
+      </React.Fragment>
     )
   }
 }
@@ -192,7 +339,7 @@ export default connect(
   ({ posts: { data }, splash: { posts }, config: { danbooru } }) => ({
     data,
     posts,
-    danbooru
+    danbooru: getDanbooruInstance(danbooru)
   })
 )(Splash)
 
