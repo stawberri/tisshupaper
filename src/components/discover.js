@@ -1,7 +1,11 @@
 import React from 'react'
 import styled from 'styled-components'
 import { connect } from 'react-redux'
-import { getDanbooruInstance, postSourceURL } from '../utils/danbooru'
+import {
+  getDanbooruInstance,
+  postSourceURL,
+  generatePostTitle
+} from '../utils/danbooru'
 import { remove as removeDiscover } from '../store/actions/discover'
 
 import Header from './header'
@@ -19,35 +23,23 @@ const Wrapper = styled.div`
 const Main = styled.main`
   display: grid;
   grid:
-    'picture info' 1fr
-    'actions actions' auto / 2fr 1fr;
-
-  @media (max-aspect-ratio: 1 / 1) {
-    grid:
-      'picture' 2fr
-      'info' auto
-      'actions' auto / auto;
-  }
+    'picture' 2fr
+    'info' auto
+    'actions' auto / auto;
 `
 
 const Picture = styled(Image)`
   box-sizing: border-box;
-  padding: 0 1em;
   width: 100%;
   height: 100%;
-
-  @media (max-aspect-ratio: 1 / 1) {
-    padding: 0;
-  }
 `
 
 const Info = styled.div`
-  margin: 1em;
+  margin: 1em 1em 0;
+  margin-left: max(1em, env(safe-area-inset-left));
+  margin-right: max(1em, env(safe-area-inset-right));
 
-  h1,
-  p {
-    margin-top: 0;
-  }
+  text-align: center;
 `
 
 const Actions = styled.div`
@@ -68,6 +60,7 @@ const Actions = styled.div`
 
     color: inherit;
     margin: 0 0.5em;
+    padding: 0;
   }
 
   a {
@@ -120,36 +113,11 @@ class Discover extends React.Component {
 
     return (
       <Wrapper>
-        <Header to="/home">Discover</Header>
+        <Header to="/home">Discover (WIP)</Header>
         {post && (
           <Main>
             <Picture id={post.id} />
-            <Info>
-              <h1>Artists</h1>
-              <ul>
-                {post.tag_string_artist &&
-                  post.tag_string_artist.split(' ').map(tag => {
-                    tag = tag.replace(/_/g, ' ')
-                    return <li key={tag}>{tag}</li>
-                  })}
-              </ul>
-              <h1>Materials</h1>
-              <ul>
-                {post.tag_string_copyright &&
-                  post.tag_string_copyright.split(' ').map(tag => {
-                    tag = tag.replace(/_/g, ' ')
-                    return <li key={tag}>{tag}</li>
-                  })}
-              </ul>
-              <h1>Characters</h1>
-              <ul>
-                {post.tag_string_character &&
-                  post.tag_string_character.split(' ').map(tag => {
-                    tag = tag.replace(/_/g, ' ')
-                    return <li key={tag}>{tag}</li>
-                  })}
-              </ul>
-            </Info>
+            <Info>{generatePostTitle(post)}</Info>
             <Actions>
               <a
                 href={danbooru.url(post.file_url)}
