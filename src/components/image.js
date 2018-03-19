@@ -10,7 +10,6 @@ import {
 } from '../utils/danbooru'
 import { resized } from '../utils'
 import transparent from '../img/transparent.gif'
-import asap from 'asap'
 import { uniqueKey } from '../utils'
 
 import { spring, Motion, TransitionMotion } from 'react-motion'
@@ -70,14 +69,31 @@ class Image extends React.Component {
     this.preloaders.forEach(img =>
       img.addEventListener('load', this.preloaderLoaded)
     )
+
+    this.beginPreload(true)
   }
 
-  componentWillReceiveProps(props) {
-    const { post = {}, size } = props
-    const { post: oldPost = {}, size: oldSize } = this.props
+  componentDidUpdate(prevProps, prevState) {
+    const { post, size, onLoad } = this.props
+    const { width, height, loaded } = this.state
 
-    if (oldPost.id !== post.id) asap(() => this.beginPreload(true))
-    else if (oldSize !== size) asap(() => this.beginPreload())
+    if (post && (!prevProps.post || post.id !== prevProps.post.id)) {
+      this.beginPreload(true)
+    } else if (
+      size !== prevProps.size ||
+      ((width || height) &&
+        (width !== prevState.width || height !== prevState.height)) ||
+      (loaded !== prevState.loaded && !loaded.length)
+    ) {
+      this.beginPreload()
+    } else if (loaded !== prevState.loaded && onLoad) {
+      const target = this.getTarget()
+
+      for (let size = 0; size < 3; size++) {
+        if (loaded[size] && !prevState.loaded[size])
+          onLoad({ ref: this, id: post.id, size, target })
+      }
+    }
   }
 
   componentWillUnmount() {
@@ -93,11 +109,8 @@ class Image extends React.Component {
     if (!post) return
 
     const target = this.getTarget()
-    if (newPost) {
-      await new Promise(done =>
-        this.setState({ loaded: [], key: uniqueKey() }, done)
-      )
-    } else if (this.state.loaded[target]) return
+    if (newPost) return this.setState({ loaded: [], key: uniqueKey() })
+    else if (this.state.loaded[target]) return
 
     const { loaded } = this.state
     const imgOk = loaded[2]
@@ -118,9 +131,7 @@ class Image extends React.Component {
   }
 
   preloaderLoaded = async event => {
-    const target = this.getTarget()
     let { loaded } = this.state
-    const { onLoad, post } = this.props
     const { preloaders } = this
 
     const size = preloaders.findIndex(preloader => event.target === preloader)
@@ -129,16 +140,8 @@ class Image extends React.Component {
     if (!loaded[size]) {
       loaded = loaded.slice()
       loaded[size] = true
-      await new Promise(done => this.setState({ loaded }, done))
+      this.setState({ loaded })
     }
-
-    if (onLoad)
-      onLoad({
-        ref: this,
-        id: post.id,
-        size,
-        target
-      })
   }
 
   wrapperRef = ref => {
@@ -164,8 +167,7 @@ class Image extends React.Component {
   }
 
   async setSize(width, height) {
-    await new Promise(done => this.setState({ width, height }, done))
-    if (width || height) this.beginPreload()
+    this.setState({ width, height })
   }
 
   getSize() {

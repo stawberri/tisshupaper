@@ -86,19 +86,18 @@ export class TisshupaperScreen extends React.Component {
 }
 
 function register(num) {
+  if (!num) return
   registrations += num
   if (registrationListener) registrationListener(registrations)
 }
 
 export default class RegisterTisshupaper extends React.Component {
-  constructor(props) {
-    super(props)
-    register(props.holds)
+  componentDidMount() {
+    register(this.props.holds)
   }
 
-  componentWillReceiveProps(props) {
-    const difference = props.holds - this.props.holds
-    if (difference) register(difference)
+  componentDidUpdate(prevProps) {
+    register(this.props.holds - prevProps.holds)
   }
 
   componentWillUnmount() {
@@ -106,8 +105,7 @@ export default class RegisterTisshupaper extends React.Component {
   }
 
   render() {
-    const { children = null } = this.props
-    return children
+    return this.props.children || null
   }
 
   static defaultProps = { holds: 1 }
