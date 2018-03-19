@@ -5,6 +5,7 @@ import { getDanbooruInstance } from '../utils/danbooru'
 
 import Header from './header'
 import Image from './image'
+import FontAwesome from '@fortawesome/react-fontawesome'
 
 const Wrapper = styled.div`
   display: grid;
@@ -13,11 +14,45 @@ const Wrapper = styled.div`
   height: 100%;
 `
 
-const Main = styled.main``
+const Main = styled.main`
+  display: grid;
+  grid:
+    'picture info' 1fr
+    'actions actions' auto / 2fr 1fr;
+`
 
 const Picture = styled(Image)`
+  box-sizing: border-box;
+  padding: 1em 1em 0;
   width: 100%;
   height: 100%;
+`
+
+const Info = styled.div``
+
+const Actions = styled.div`
+  grid-area: actions;
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+
+  padding: 1rem 0;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+
+  font-size: 1.5rem;
+
+  button {
+    background: none;
+    border: none;
+
+    color: inherit;
+    margin: 0 0.5em;
+
+    &:active {
+      outline: none;
+    }
+  }
 `
 
 class Discover extends React.Component {
@@ -58,6 +93,15 @@ class Discover extends React.Component {
         {post && (
           <Main>
             <Picture id={post.id} />
+            <Info />
+            <Actions>
+              <button>
+                <FontAwesome icon="trash" size="lg" />
+              </button>
+              <button>
+                <FontAwesome icon="heart" size="lg" />
+              </button>
+            </Actions>
           </Main>
         )}
       </Wrapper>

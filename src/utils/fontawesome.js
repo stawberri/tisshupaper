@@ -9,6 +9,7 @@ import faExternalLinkAlt from '@fortawesome/fontawesome-free-solid/faExternalLin
 import faDownload from '@fortawesome/fontawesome-free-solid/faDownload'
 import farHeart from '@fortawesome/fontawesome-free-regular/faHeart'
 import faLink from '@fortawesome/fontawesome-free-solid/faLink'
+import faTrash from '@fortawesome/fontawesome-free-solid/faTrash'
 
 fontawesome.library.add(
   faChevronLeft,
@@ -19,5 +20,6 @@ fontawesome.library.add(
   faExternalLinkAlt,
   faDownload,
   farHeart,
-  faLink
+  faLink,
+  faTrash
 )
