@@ -110,6 +110,7 @@ class Discover extends React.Component {
 
   render() {
     const { post } = this.state
+    const { posts } = this.props
 
     return (
       <Wrapper>
@@ -119,19 +120,10 @@ class Discover extends React.Component {
             <Picture id={post.id} />
             <Info>
               <p>
-                Hi! I haven't gotten around to implementing{' '}
-                <FontAwesome icon="heart" size="lg" /> yet. Sorry!
+                <FontAwesome icon="trash" size="lg" /> isn't permanent and
+                images come back after you refresh.
               </p>
-              <p>
-                Fortunately, <FontAwesome icon="trash" size="lg" /> doesn't
-                permanently delete anything, so you can use it to load another
-                picture for now. Pictures that you dismiss this way will come
-                back after you refresh!
-              </p>
-              <p>
-                I haven't added a loading mechanism for more pictures, so you
-                can only flip through 200 pictures before you run out.
-              </p>
+              <p>{Object.keys(posts).length} pictures remaining.</p>
             </Info>
             <Actions>
               <button onClick={this.removePost}>
