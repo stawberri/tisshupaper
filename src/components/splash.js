@@ -1,5 +1,5 @@
 import React from 'react'
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 import { connect } from '../utils'
 import { readTagString, getDanbooruInstance } from '../utils/danbooru'
 import { resize, contained, coverage } from '../utils/image'
@@ -32,21 +32,29 @@ const MainImage = styled(Image)`
   opacity: 0;
 `
 
+const MetaBox = styled.div`
+  position: absolute;
+  left: 0;
+  bottom: 0;
+
+  width: 100%;
+`
+
 const Meta = styled.figcaption`
   position: absolute;
   left: 0;
   bottom: 0;
 
   box-sizing: border-box;
-  max-width: 100%;
+  width: 100%;
   margin: 0;
   padding: 1em 1.3em;
   padding-left: max(1.3em, env(safe-area-inset-left));
   padding-right: max(1.3em, env(safe-area-inset-right));
   padding-bottom: max(1em, env(safe-area-inset-bottom));
 
-  font-weight: 900;
   font-size: 2rem;
+  font-weight: 900;
   color: ${({ theme }) => theme.bg};
   text-shadow: 0 0 0.1em ${({ theme }) => theme.darkText},
     0 0 0.5em ${({ theme }) => theme.darkText},
@@ -56,16 +64,40 @@ const Meta = styled.figcaption`
   overflow: hidden;
   text-overflow: ellipsis;
 
+  @media (max-width: 25rem) {
+    font-size: 1.5rem;
+  }
+`
+
+const metaAnim = keyframes`
+  5% {
+    opacity: 1;
+  }
+
+  45% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+`
+
+const Illust = Meta.extend`
+  opacity: 0;
+  animation: 12s ${metaAnim} linear infinite;
+
   &::before {
     content: 'illust. ';
     opacity: 0.95;
     font-size: 0.85em;
     font-weight: 600;
   }
+`
 
-  @media (max-width: 25rem) {
-    font-size: 1.5rem;
-  }
+const TapStart = Meta.extend`
+  opacity: 0;
+  animation: 12s 6s ${metaAnim} linear infinite;
 `
 
 const Error = styled(Link)`
@@ -316,15 +348,18 @@ class Splash extends React.Component {
             <Motion style={{ opacity: spring(+!match, springSettings) }}>
               {({ opacity }) =>
                 opacity > 0 && (
-                  <Meta
+                  <MetaBox
                     style={
                       opacity < 1
                         ? { opacity, transform: `translateZ(0)` }
                         : undefined
                     }
                   >
-                    {readTagString(post.tag_string_artist) || '(unknown)'}
-                  </Meta>
+                    <Illust>
+                      {readTagString(post.tag_string_artist) || '(unknown)'}
+                    </Illust>
+                    <TapStart>Tap to start</TapStart>
+                  </MetaBox>
                 )
               }
             </Motion>
