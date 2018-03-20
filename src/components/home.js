@@ -110,7 +110,7 @@ class Home extends React.Component {
             <Caption>{generatePostTitle(post)}</Caption>
             <Picture innerRef={this.pictureRef} />
             <Buttons>
-              <Link to={`/like/${post.id}`}>
+              <Link to={`/like/${post.id}`} style={{ opacity: 0.5 }}>
                 <FontAwesome icon={['far', 'heart']} />
               </Link>
               <a

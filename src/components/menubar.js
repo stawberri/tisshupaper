@@ -43,13 +43,13 @@ export default class Menubar extends React.Component {
   render() {
     return (
       <Wrapper>
-        <Item to="/stash">
+        <Item to="/stash" style={{ opacity: 0.5 }}>
           <FontAwesome icon="heart" />
         </Item>
         <MainItem to="/discover">
           <FontAwesome icon="search" />
         </MainItem>
-        <Item to="/settings">
+        <Item to="/settings" style={{ opacity: 0.5 }}>
           <FontAwesome icon="cog" />
         </Item>
       </Wrapper>
